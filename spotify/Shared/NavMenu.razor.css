@@ -1,0 +1,52 @@
+.navbar-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 60%;
+    border-radius: 6px;
+}
+
+.profile-name {
+    font-weight: bold;
+    font-size: larger;
+    color: white;
+    margin: 25px 0;
+    padding: 0 0 15px 0;
+    border-bottom: 8px solid #62f0e2;
+}
+
+.liked-songs {
+    font-weight: bold;
+    font-size: large;
+    color: white;
+    margin: 15px 0;
+    cursor: pointer;
+}
+
+.now-playing-container {
+    width: 100%;
+    padding: 20px;
+    height: 450px;
+    justify-content: space-between;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.slider {
+    width: 100%;
+}
+
+.play-button {
+    margin: 20px 0;
+    padding: 5px;
+    height: 50px;
+    width: 50px;
+    border-radius: 100px;
+}

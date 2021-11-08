@@ -1,0 +1,24 @@
+﻿@page "/callback"
+@inject NavigationManager NavManager
+@inject Blazored.LocalStorage.ISyncLocalStorageService localStorage
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var queryStrings = QueryHelpers.ParseQuery(uri.Query);
+        if (queryStrings.TryGetValue("code", out var code))
+        {
+            await GetCallback(code);
+        }
+    }
+    async Task GetCallback(string code)
+    {
+        var verifier = localStorage.GetItem<string>("verifier");
+        localStorage.RemoveItem("verifier");
+
+        var initialResponse = await new OAuthClient().RequestToken(new PKCETokenRequest("b98639a71452460780fd041649a6f64e", code, new Uri("https://localhost:44313/callback"), verifier));
+        localStorage.SetItem<PKCETokenResponse>("PKCE", initialResponse);
+
+        NavManager.NavigateTo("/", forceLoad: true);
+    }
+}
