@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using Syncfusion.Blazor;
 using System.Threading.Tasks;
 
 namespace spotify
@@ -35,7 +36,7 @@ namespace spotify
                 .AddFontAwesomeIcons();
 
             builder.Services.AddBlazoredLocalStorage().AddScoped<Spotify>();
-            builder.Services.AddTelerikBlazor();
+            builder.Services.AddSyncfusionBlazor();
 
             await builder.Build().RunAsync();
         }

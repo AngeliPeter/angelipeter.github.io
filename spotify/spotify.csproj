@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.10" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="SpotifyAPI.Web" Version="6.2.2" />
+    <PackageReference Include="Syncfusion.Blazor.Grid" Version="19.3.0.48" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
     <PackageReference Include="Telerik.UI.for.Blazor.Trial" Version="2.27.0" />
   </ItemGroup>

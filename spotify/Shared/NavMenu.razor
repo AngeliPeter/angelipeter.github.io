@@ -9,43 +9,53 @@
     <div class="liked-songs" @onclick="ClickedLikedSong">Liked songs</div>
 
     <div class="now-playing-container">
-        @foreach (var device in devices)
-        {
-            <div>
-                @if (device.Name != null && device.VolumePercent != null && device.IsActive)
-                {
-                    <div>Playing on: @device.Name</div>
-                    <input type="range" min="0" max="100"
-                           class="slider"
-                           value="@device.VolumePercent"
-                           @onchange="@(async (ChangeEventArgs __e) =>
-                                        {
-
-        PlayerVolumeRequest pvr = new PlayerVolumeRequest(Convert.ToInt32(__e.Value));
-
-        await spotifyClient.Player.SetVolume(pvr);
-        volumeSliderFocus = false;
-                                        })"
-                           @oninput="@(() => { volumeSliderFocus = true; })"
-                           id="volumeSlider">
-                }
-            </div>
-        }
-
         @if (currentlyPlaying != null)
         {
-            if (currentlyPlaying.IsPlaying)
+        <div style="text-align:left">
+            @foreach (var device in devices)
+            {
+                @if (device.Name != null)
+                {
+                    @if (device.IsActive)
+                    {
+                        <div><code>X</code> @device.Name</div>
+                    }
+                    else
+                    {
+                        <div @onclick="@(() => @DeviceChange(@device.Name))"><code>-</code> @device.Name</div>
+                    }
+                }
+            }
+        </div>
+
+            <input type="range" min="0" max="100"
+                   class="slider"
+                   value="@currentDevice.VolumePercent"
+                   @onchange="@(async (ChangeEventArgs __e) =>
+                            {
+
+                                PlayerVolumeRequest pvr = new PlayerVolumeRequest(Convert.ToInt32(__e.Value));
+
+                                await spotifyClient.Player.SetVolume(pvr);
+                                volumeSliderFocus = false;
+
+                                StartTimerAsync(false);
+                            })"
+                   @oninput="@(() => { volumeSliderFocus = true; })"
+                   id="volumeSlider">
+
+            @if (currentlyPlaying.IsPlaying)
             {
                 <div>PLAYING</div>
-                <button type="button" @onclick="@(() => { spotifyClient.Player.PausePlayback(); })" class="play-button">||</button>
+                <button type="button" @onclick="@(() => { spotifyClient.Player.PausePlayback(); StartTimerAsync(false); })" class="play-button">||</button>
             }
             else
             {
                 <div>STOPPED</div>
-                <button type="button" @onclick="@(() => { spotifyClient.Player.ResumePlayback(); })" class="play-button">></button>
+                <button type="button" @onclick="@(() => { spotifyClient.Player.ResumePlayback(); StartTimerAsync(false); })" class="play-button">></button>
             }
 
-            if (currentlyPlaying.Item.Type == ItemType.Track)
+            @if (currentlyPlaying.Item.Type == ItemType.Track)
             {
                 FullTrack track = (FullTrack)currentlyPlaying.Item;
                 int progress = currentlyPlaying.ProgressMs ?? 0;
@@ -65,12 +75,13 @@
                 </div>
                 <input type="range" min="0" max="100"
                        @onchange="@(async (ChangeEventArgs __e) =>
-                                        {
-                                            PlayerSeekToRequest pstr = new PlayerSeekToRequest((long)((Convert.ToDouble(__e.Value) / 100.0) * track.DurationMs));
+                                    {
+                                        PlayerSeekToRequest pstr = new PlayerSeekToRequest((long)((Convert.ToDouble(__e.Value) / 100.0) * track.DurationMs));
 
-                                            await spotifyClient.Player.SeekTo(pstr);
-                                            seekSliderFocus = false;
-                                        })"
+                                        await spotifyClient.Player.SeekTo(pstr);
+                                        seekSliderFocus = false;
+                                        StartTimerAsync(false);
+                                    })"
                        @oninput="@(() => { seekSliderFocus = true; })"
                        value="@precent"
                        class="slider" id="trackSlider">
@@ -91,6 +102,8 @@
 
     bool seekSliderFocus = false;
     bool volumeSliderFocus = false;
+
+    Device currentDevice = null;
 
     List<Device> devices = new List<Device>();
     CurrentlyPlaying currentlyPlaying = null;
@@ -113,11 +126,12 @@
         image = user.Images.FirstOrDefault().Url;
 
         devices = (await spotifyClient.Player.GetAvailableDevices()).Devices;
+        currentDevice = devices.Find(d => d.IsActive);
+
         PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
         currentlyPlaying = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
 
-
-        StartTimerAsync();
+        StartTimerAsync(true);
     }
 
     public void ClickedLikedSong()
@@ -126,13 +140,28 @@
     }
 
 
-    public async void StartTimerAsync()
+    public async void DeviceChange(string selectedString)
     {
-        while (true)
+        List<string> deviceList = new List<string>();
+        string selectedDevice = devices.Find(d => d.Name.Equals(selectedString)).Id;
+        Console.WriteLine(selectedDevice);
+        deviceList.Add(selectedDevice);
+        PlayerTransferPlaybackRequest ptpq = new PlayerTransferPlaybackRequest(deviceList);
+        await spotifyClient.Player.TransferPlayback(ptpq);
+
+        StartTimerAsync(false);
+    }
+
+
+    public async void StartTimerAsync(bool keepAlive)
+    {
+        bool alive = true;
+        while (alive)
         {
             if (!volumeSliderFocus)
             {
                 devices = (await spotifyClient.Player.GetAvailableDevices()).Devices;
+                currentDevice = devices.Find(d => d.IsActive);
             }
             if (!seekSliderFocus)
             {
@@ -141,6 +170,8 @@
             }
             StateHasChanged();
             await Task.Delay(1000);
+
+            alive = keepAlive;
         }
     }
 

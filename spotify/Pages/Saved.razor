@@ -1,16 +1,54 @@
 ﻿@page "/saved"
 @inject NavigationManager NavManager
+@using Syncfusion.Blazor.Grids
 @inject ISpotify spotify
 General grid with its most common features
 
-@if (MyData != null)
-{
-   
-}
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <SfGrid DataSource="@GridData" AllowPaging="true">
+                <GridPageSettings PageSize="5" />
+                <GridColumns>
+                    <GridColumn HeaderText="Play" Width="50">
+                        <Template>
+                            @{
+                                var trackInfo = (context as SavedTrack);
+
+                                <div @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                                    <img src="https://www.seekpng.com/png/full/195-1959190_music-streaming-icon-png.png" height="38" width="50" />
+                                </div>
+                            }
+                        </Template>
+                    </GridColumn>
+                    <GridColumn HeaderText="Name">
+                        <Template>
+                            @{
+                                var trackInfo = (context as SavedTrack);
+
+                                <span>@trackInfo.Track.Name</span>
+                            }
+                        </Template>
+                    </GridColumn>
+                    <GridColumn HeaderText="Popularity">
+                        <Template>
+                            @{
+                                var trackInfo = (context as SavedTrack);
+
+                                <span>@trackInfo.Track.Popularity</span>
+                            }
+                        </Template>
+                    </GridColumn>
+                    <GridColumn Field=@nameof(SavedTrack.AddedAt) HeaderText="Order Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
+                </GridColumns>
+            </SfGrid>
+        </div>
+    </div>
+</div>
 
 
 @code {
-    public IEnumerable<FullTrack> MyData = null;
+    public IEnumerable<SavedTrack> GridData { get; set; }
 
 
     SpotifyClient spotifyClient = null;
@@ -24,11 +62,17 @@ General grid with its most common features
         }
         spotifyClient = result.SpotifyObject;
 
-        MyData = (await spotifyClient.Library.GetTracks()).Items.Select(ss => ss.Track);
+        GridData = (await spotifyClient.Library.GetTracks()).Items.Select(ss => ss);
     }
 
-
-
+    private async void ClickedPlay(string songUri)
+    {
+        List<string> trackList = new List<string>();
+        trackList.Add(songUri);
+        var track = new PlayerResumePlaybackRequest();
+        track.Uris = trackList;
+        await spotifyClient.Player.ResumePlayback(track);
+    }
 }
 
 
