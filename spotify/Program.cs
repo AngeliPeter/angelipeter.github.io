@@ -37,6 +37,7 @@ namespace spotify
 
             builder.Services.AddBlazoredLocalStorage().AddScoped<Spotify>();
             builder.Services.AddSyncfusionBlazor();
+            builder.Services.AddScoped<SpotifyDb>();
 
             await builder.Build().RunAsync();
         }

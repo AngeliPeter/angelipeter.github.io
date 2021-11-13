@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.1.5" />
+    <PackageReference Include="BlazorIndexedDbJs" Version="2.3.15" />
     <PackageReference Include="Blazorise.Bootstrap" Version="0.9.4.6" />
     <PackageReference Include="Blazorise.Icons.FontAwesome" Version="0.9.4.6" />
     <PackageReference Include="GridBlazor" Version="2.1.20" />
@@ -22,7 +23,6 @@
     <PackageReference Include="SpotifyAPI.Web" Version="6.2.2" />
     <PackageReference Include="Syncfusion.Blazor.Grid" Version="19.3.0.48" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
-    <PackageReference Include="Telerik.UI.for.Blazor.Trial" Version="2.27.0" />
   </ItemGroup>
 
   <ItemGroup>

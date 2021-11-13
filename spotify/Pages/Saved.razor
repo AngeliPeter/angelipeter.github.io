@@ -2,47 +2,63 @@
 @inject NavigationManager NavManager
 @using Syncfusion.Blazor.Grids
 @inject ISpotify spotify
-General grid with its most common features
+@inject SpotifyDb spotifyDb
 
 <div class="col-lg-12 control-section">
     <div class="content-wrapper">
-        <div class="row">
-            <SfGrid DataSource="@GridData" AllowPaging="true">
-                <GridPageSettings PageSize="5" />
-                <GridColumns>
-                    <GridColumn HeaderText="Play" Width="50">
-                        <Template>
-                            @{
-                                var trackInfo = (context as SavedTrack);
+        <button @onclick="FetchLikedSongs">Refresh</button>
+        @if (loadingData)
+        {
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <SfGrid DataSource="@GridData" AllowPaging="true">
+                    <GridPageSettings PageSize="20" />
+                    <GridColumns>
+                        <GridColumn HeaderText="Play" Width="50">
+                            <Template>
+                                @{
+                                    var trackInfo = (context as SavedTrack);
 
-                                <div @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
-                                    <img src="https://www.seekpng.com/png/full/195-1959190_music-streaming-icon-png.png" height="38" width="50" />
-                                </div>
-                            }
-                        </Template>
-                    </GridColumn>
-                    <GridColumn HeaderText="Name">
-                        <Template>
-                            @{
-                                var trackInfo = (context as SavedTrack);
+                                    <div @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                                        <img src="https://www.seekpng.com/png/full/195-1959190_music-streaming-icon-png.png" height="38" width="50" />
+                                    </div>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn HeaderText="Name">
+                            <Template>
+                                @{
+                                    var trackInfo = (context as SavedTrack);
 
-                                <span>@trackInfo.Track.Name</span>
-                            }
-                        </Template>
-                    </GridColumn>
-                    <GridColumn HeaderText="Popularity">
-                        <Template>
-                            @{
-                                var trackInfo = (context as SavedTrack);
+                                    <span>@trackInfo.Track.Name</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn HeaderText="Popularity">
+                            <Template>
+                                @{
+                                    var trackInfo = (context as SavedTrack);
 
-                                <span>@trackInfo.Track.Popularity</span>
-                            }
-                        </Template>
-                    </GridColumn>
-                    <GridColumn Field=@nameof(SavedTrack.AddedAt) HeaderText="Order Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
-                </GridColumns>
-            </SfGrid>
-        </div>
+                                    <span>@trackInfo.Track.Popularity</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn Field=@nameof(SavedTrack.AddedAt) HeaderText="Order Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
+                    </GridColumns>
+                </SfGrid>
+            </div>
+        }
+
     </div>
 </div>
 
@@ -50,6 +66,8 @@ General grid with its most common features
 @code {
     public IEnumerable<SavedTrack> GridData { get; set; }
 
+    bool loadingData = true;
+    float loadingPercentage = 0;
 
     SpotifyClient spotifyClient = null;
 
@@ -62,7 +80,52 @@ General grid with its most common features
         }
         spotifyClient = result.SpotifyObject;
 
-        GridData = (await spotifyClient.Library.GetTracks()).Items.Select(ss => ss);
+        await spotifyDb.Open();
+
+        if ((GridData = await spotifyDb.LikedSongs.GetAll<SavedTrack>()).Count() == 0)
+        {
+            FetchLikedSongs();
+        }
+        else
+        {
+            loadingData = false;
+        }
+    }
+
+    private async void FetchLikedSongs()
+    {
+        loadingData = true;
+
+        await spotifyDb.DeleteDatabase();
+        await spotifyDb.Open();
+
+        Paging<SavedTrack> nextPaging = new Paging<SavedTrack>();
+
+        LibraryTracksRequest ltr = new LibraryTracksRequest();
+        ltr.Limit = 50;
+        int offsetOffset = 0;
+
+        while ((nextPaging = await spotifyClient.Library.GetTracks(ltr)).Items.Count() != 0)
+        {
+            nextPaging.Items.ForEach(async (savedTrack) => { await spotifyDb.LikedSongs.Add(savedTrack); });
+
+            Console.WriteLine(nextPaging.Items.Count);
+
+            loadingPercentage = (((offsetOffset) * 50 + nextPaging.Items.Count()) / (float)nextPaging.Total * 100);
+            Console.WriteLine(loadingPercentage);
+
+            offsetOffset++;
+            ltr.Offset = offsetOffset * 50;
+
+            StateHasChanged();
+        }
+
+        GridData = await spotifyDb.LikedSongs.GetAll<SavedTrack>();
+
+        loadingData = false;
+        loadingPercentage = 0;
+
+        StateHasChanged();
     }
 
     private async void ClickedPlay(string songUri)

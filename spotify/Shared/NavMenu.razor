@@ -88,9 +88,6 @@
             }
         }
     </div>
-
-
-
 </div>
 
 
@@ -131,7 +128,7 @@
         PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
         currentlyPlaying = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
 
-        StartTimerAsync(true);
+        //StartTimerAsync(true);
     }
 
     public void ClickedLikedSong()
