@@ -4,8 +4,26 @@
 
 
 <div class="navbar-container">
-    <div class="profile-name">@name</div>
-    <img src="@image" class="profile-pic" />
+    <div class="profile-container">
+        <div class="profile-image">
+            @if (image != null)
+            {
+                <img src="@image" class="profile-pic" />
+            }
+            else
+            {
+                <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="profile-pic" />
+            }
+        </div>
+        <div class="profile-right-container">
+            <div class="profile-name">
+                @name
+                <i class="bi bi-x-square-fill profile-logout-container" @onclick="LogOut" />
+            </div>
+            <img src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_White.png" class="spotify-image" />
+        </div>
+    </div>
+
     <div class="liked-songs" @onclick="ClickedLikedSong">Liked songs</div>
 
     <div class="player-container">
@@ -118,7 +136,7 @@
                 <div class="player-song-name">
                     @if (track.Explicit)
                     {
-                    <i class="bi bi-exclamation-square-fill"></i>
+                        <i class="bi bi-exclamation-square-fill"></i>
                     }
                     @track.Name
                 </div>
@@ -174,7 +192,7 @@
 
 @code {
     string name = "loading...";
-    string image = "https://www.lollok.hu/wp-content/uploads/2019/11/placeholder.png";
+    string image = "https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png";
     SpotifyClient spotifyClient = null;
 
     bool onPrev = false;
@@ -219,6 +237,12 @@
     public void ClickedLikedSong()
     {
         NavManager.NavigateTo("/saved");
+    }
+
+    private void LogOut()
+    {
+        localStorage.RemoveItem("PKCE");
+        NavManager.NavigateTo("/", forceLoad: true);
     }
 
 

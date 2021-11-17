@@ -1,4 +1,46 @@
 ﻿@inject NavigationManager NavManager
 @inject ISpotify spotify
+@inject NavigationManager NavManager
+@implements IDisposable
 
-    <input type="text" class="search-field" placeholder="Search..."/>
+<input type="text" @bind-value="SearchPhrase" @bind-value:event="oninput"
+       @onkeyup="@HandleKeyUp" class="search-field" placeholder="Search..." />
+
+@code {
+    public string SearchPhrase { get; set; }
+    private Timer aTimer;
+
+    protected override void OnInitialized()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("q", out var _searchPhrase))
+        {
+            SearchPhrase = HttpUtility.UrlDecode(_searchPhrase);
+        }
+        aTimer = new Timer(1000);
+        aTimer.Elapsed += OnUserFinish;
+        aTimer.AutoReset = false;
+    }
+
+    void HandleKeyUp(KeyboardEventArgs e)
+    {
+        aTimer.Stop();
+        aTimer.Start();
+    }
+
+    private void OnUserFinish(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            if (!String.IsNullOrEmpty(SearchPhrase))
+            {
+                NavManager.NavigateTo($"/search?q={HttpUtility.UrlEncode(SearchPhrase)}");
+                StateHasChanged();
+            }
+        });
+    }
+    void IDisposable.Dispose()
+    {
+        aTimer?.Dispose();
+    }
+}
