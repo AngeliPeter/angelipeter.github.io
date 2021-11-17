@@ -8,30 +8,28 @@
     <img src="@image" class="profile-pic" />
     <div class="liked-songs" @onclick="ClickedLikedSong">Liked songs</div>
 
-    <div class="now-playing-container">
-        @if (currentlyPlaying != null)
+    <div class="player-container">
+        @if (currentlyPlaying != null && currentlyPlaying.Item.Type == ItemType.Track)
         {
-        <div style="text-align:left">
-            @foreach (var device in devices)
-            {
-                @if (device.Name != null)
-                {
-                    @if (device.IsActive)
-                    {
-                        <div><code>X</code> @device.Name</div>
-                    }
-                    else
-                    {
-                        <div @onclick="@(() => @DeviceChange(@device.Name))"><code>-</code> @device.Name</div>
-                    }
-                }
-            }
-        </div>
+            FullTrack track = (FullTrack)currentlyPlaying.Item;
+            int progress = currentlyPlaying.ProgressMs ?? 0;
+            int precent = (int)(((double)progress / (double)track.DurationMs) * 100);
 
-            <input type="range" min="0" max="100"
-                   class="slider"
-                   value="@currentDevice.VolumePercent"
-                   @onchange="@(async (ChangeEventArgs __e) =>
+
+            long secondsProgress = progress / 1000;
+            long minutesProgress = secondsProgress / 60;
+
+            long secondsDur = track.DurationMs / 1000;
+            long minutesDur = secondsDur / 60;
+
+            <div class="player-upper-bar">
+                <div class="player-info-container">
+                    <div class="player-volume-container">
+                        <div class="timestamp-min">@($"{@currentDevice.VolumePercent}%")</div>
+                        <input type="range" min="0" max="100"
+                               class="slider"
+                               value="@currentDevice.VolumePercent"
+                               @onchange="@(async (ChangeEventArgs __e) =>
                             {
 
                                 PlayerVolumeRequest pvr = new PlayerVolumeRequest(Convert.ToInt32(__e.Value));
@@ -41,40 +39,102 @@
 
                                 StartTimerAsync(false);
                             })"
-                   @oninput="@(() => { volumeSliderFocus = true; })"
-                   id="volumeSlider">
+                               @oninput="@(() => { volumeSliderFocus = true; })"
+                               id="volumeSlider">
+                    </div>
 
-            @if (currentlyPlaying.IsPlaying)
-            {
-                <div>PLAYING</div>
-                <button type="button" @onclick="@(() => { spotifyClient.Player.PausePlayback(); StartTimerAsync(false); })" class="play-button">||</button>
-            }
-            else
-            {
-                <div>STOPPED</div>
-                <button type="button" @onclick="@(() => { spotifyClient.Player.ResumePlayback(); StartTimerAsync(false); })" class="play-button">></button>
-            }
+                    <div class="player-controls-container">
+                        <div class="skip-backward-cnt"
+                             @onmouseenter="@(() => onPrev = true)"
+                             @onmouseleave="@(() => onPrev = false)">
 
-            @if (currentlyPlaying.Item.Type == ItemType.Track)
-            {
-                FullTrack track = (FullTrack)currentlyPlaying.Item;
-                int progress = currentlyPlaying.ProgressMs ?? 0;
-                int precent = (int)(((double)progress / (double)track.DurationMs) * 100);
+                            @if (onPrev)
+                            {
+                                <i class="bi bi-skip-backward-fill" @onclick="@(() => { spotifyClient.Player.SkipPrevious(); StartTimerAsync(false); })"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-skip-backward" @onclick="@(() => { spotifyClient.Player.SkipPrevious(); StartTimerAsync(false); })"></i>
+                            }
+                        </div>
+                        <div class="play-cnt"
+                             @onmouseenter="@(() => onPlay = true)"
+                             @onmouseleave="@(() => onPlay = false)">
 
-                @if (track.Album.Images.FirstOrDefault() != null)
-                {
-                    <img src="@track.Album.Images.FirstOrDefault().Url" alt="hey" width="200" height="200" />
-                }
-                else
-                {
-                    <img src="https://www.lollok.hu/wp-content/uploads/2019/11/placeholder.png" alt="hey" width="200" height="200" />
-                }
+                            @if (currentlyPlaying.IsPlaying)
+                            {
+                                @if (onPlay)
+                                {
+                                    <i class="bi bi-pause-circle-fill" @onclick="@(() => { spotifyClient.Player.PausePlayback(); StartTimerAsync(false); })"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-disc-fill" @onclick="@(() => { spotifyClient.Player.PausePlayback(); StartTimerAsync(false); })"></i>
+                                }
+                            }
+                            else
+                            {
+                                @if (onPlay)
+                                {
+                                    <i class="bi bi-play-fill" @onclick="@(() => { spotifyClient.Player.ResumePlayback(); StartTimerAsync(false); })"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-play" @onclick="@(() => { spotifyClient.Player.ResumePlayback(); StartTimerAsync(false); })"></i>
+                                }
 
-                <div>
+                            }
+                        </div>
+                        <div class="skip-forward-cnt"
+                             @onmouseenter="@(() => onNext = true)"
+                             @onmouseleave="@(() => onNext = false)">
+
+                            @if (onNext)
+                            {
+                                <i class="bi bi-skip-forward-fill" @onclick="@(() => { spotifyClient.Player.SkipNext(); StartTimerAsync(false); })"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-skip-forward" @onclick="@(() => { spotifyClient.Player.SkipNext(); StartTimerAsync(false); })"></i>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+                <div class="player-image-container">
+                    @if (track.Album.Images.FirstOrDefault() != null)
+                    {
+                        <img src="@track.Album.Images.FirstOrDefault().Url" class="player-image" />
+                    }
+                    else
+                    {
+                        <img src="https://www.lollok.hu/wp-content/uploads/2019/11/placeholder.png" class="player-image" />
+                    }
+                </div>
+            </div>
+
+            <div class="player-song-info-container">
+
+                <div class="player-song-name">
+                    @if (track.Explicit)
+                    {
+                    <i class="bi bi-exclamation-square-fill"></i>
+                    }
                     @track.Name
                 </div>
-                <input type="range" min="0" max="100"
-                       @onchange="@(async (ChangeEventArgs __e) =>
+                <div class="player-song-artist">
+                    @foreach (var artist in @track.Artists)
+                    {
+                        @($"{artist.Name} ")
+                    }
+                </div>
+            </div>
+
+            <div class="player-track-progress-container">
+                <div class="track-progress-slider">
+                    <div class="timestamp-min">@($"{minutesProgress}:{(secondsProgress % 60):D2}")</div>
+                    <input type="range" min="0" max="100"
+                           @onchange="@(async (ChangeEventArgs __e) =>
                                     {
                                         PlayerSeekToRequest pstr = new PlayerSeekToRequest((long)((Convert.ToDouble(__e.Value) / 100.0) * track.DurationMs));
 
@@ -82,11 +142,31 @@
                                         seekSliderFocus = false;
                                         StartTimerAsync(false);
                                     })"
-                       @oninput="@(() => { seekSliderFocus = true; })"
-                       value="@precent"
-                       class="slider" id="trackSlider">
-            }
+                           @oninput="@(() => { seekSliderFocus = true; })"
+                           value="@precent"
+                           class="slider" id="trackSlider">
+                    <div class="timestamp-max">@($"{minutesDur}:{(secondsDur % 60):D2}")</div>
+                </div>
+            </div>
+
+            <div class="player-active-device">
+                @foreach (var device in devices)
+                {
+                    @if (device.Name != null)
+                    {
+                        @if (device.IsActive)
+                        {
+                            <div class="device-name active"><i class="bi bi-volume-up-fill"></i> @device.Name</div>
+                        }
+                        else
+                        {
+                            <div class="device-name" @onclick="@(() => @DeviceChange(@device.Name))"><i class="bi bi-volume-mute"></i> @device.Name</div>
+                        }
+                    }
+                }
+            </div>
         }
+
     </div>
 </div>
 
@@ -96,6 +176,11 @@
     string name = "loading...";
     string image = "https://www.lollok.hu/wp-content/uploads/2019/11/placeholder.png";
     SpotifyClient spotifyClient = null;
+
+    bool onPrev = false;
+    bool onPlay = false;
+    bool onPause = false;
+    bool onNext = false;
 
     bool seekSliderFocus = false;
     bool volumeSliderFocus = false;
@@ -128,7 +213,7 @@
         PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
         currentlyPlaying = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
 
-        //StartTimerAsync(true);
+        StartTimerAsync(true);
     }
 
     public void ClickedLikedSong()

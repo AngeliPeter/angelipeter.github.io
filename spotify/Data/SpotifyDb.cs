@@ -23,16 +23,34 @@ namespace spotify.Data
         }
     }
 
+    public class AvailableDevices : IDBObjectStore
+    {
+        public IDBIndex Id { get; }
+        public IDBIndex Type { get; }
+
+
+        public AvailableDevices(IDBDatabase database) : base(database)
+        {
+            Name = "AvailableDevices";
+            KeyPath = "id";
+
+            Id = new IDBIndex(this, "id", "id");
+            Type = new IDBIndex(this, "type", "type");
+        }
+    }
+
     public class SpotifyDb : IDBDatabase
     {
         public LikedSongs LikedSongs { get; }
+        public AvailableDevices AvailableDevices { get; }
 
         public SpotifyDb(IJSRuntime jsRuntime) : base(jsRuntime)
         {
             Name = "SpotifyDb";
-            Version = 1;
+            Version = 3;
 
             LikedSongs = new LikedSongs(this);
+            AvailableDevices = new AvailableDevices(this);
         }
     }
 }

@@ -1,0 +1,16 @@
+﻿.play-button-inline {
+    cursor: pointer;
+    display: flex;
+}
+
+.refresh-button {
+    margin: 15px 0 0 -15px;
+}
+
+.refresh-button span {
+    margin: 0 5px 0 5px;
+}
+
+.progress {
+    margin: 15px 0 0 -15px;
+}

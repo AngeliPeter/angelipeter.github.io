@@ -6,59 +6,54 @@
 
 <div class="col-lg-12 control-section">
     <div class="content-wrapper">
-        <button @onclick="FetchLikedSongs">Refresh</button>
-        @if (loadingData)
-        {
-            <div class="text-center">
-                <div class="spinner-border" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
-            </div>
-            <div class="progress">
-                <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-        }
-        else
+        @if (!loadingData)
         {
             <div class="row">
-                <SfGrid DataSource="@GridData" AllowPaging="true">
-                    <GridPageSettings PageSize="20" />
+                <SfGrid DataSource="@GridData"
+                        AllowPaging="true"
+                        AllowReordering="true"
+                        AllowSorting="true"
+                        AllowSelection="true">
+                    <GridPageSettings PageSize="10" />
                     <GridColumns>
-                        <GridColumn HeaderText="Play" Width="50">
+                        <GridColumn HeaderText="" Width="50">
                             <Template>
                                 @{
                                     var trackInfo = (context as SavedTrack);
 
-                                    <div @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
-                                        <img src="https://www.seekpng.com/png/full/195-1959190_music-streaming-icon-png.png" height="38" width="50" />
+                                    <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                                        <i class="bi bi-play-fill"></i>
                                     </div>
                                 }
                             </Template>
                         </GridColumn>
-                        <GridColumn HeaderText="Name">
-                            <Template>
-                                @{
-                                    var trackInfo = (context as SavedTrack);
-
-                                    <span>@trackInfo.Track.Name</span>
-                                }
-                            </Template>
-                        </GridColumn>
-                        <GridColumn HeaderText="Popularity">
-                            <Template>
-                                @{
-                                    var trackInfo = (context as SavedTrack);
-
-                                    <span>@trackInfo.Track.Popularity</span>
-                                }
-                            </Template>
-                        </GridColumn>
-                        <GridColumn Field=@nameof(SavedTrack.AddedAt) HeaderText="Order Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
+                        <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
+                        <GridColumn Field="Track.Name" HeaderText="Name" />
+                        <GridColumn Field="Track.Explicit" HeaderText="Explicit" />
+                        <GridColumn Field="Track.DurationMs" HeaderText="DurationMs" />
+                        <GridColumn Field="Track.Album.Name" HeaderText="AlbumName" />
+                        <GridColumn Field="AddedAt" HeaderText="AddedAt" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
                     </GridColumns>
                 </SfGrid>
             </div>
         }
+            else { 
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+}
 
+        <div class="refresh-button">
+            <button type="button" class="btn btn-primary btn-sm" @onclick="FetchLikedSongs" disabled="@loadingData">
+                <span>Refresh your songs</span>
+                @if (loadingData)
+                {
+            <span class="spinner-border spinner-border-sm" role="status">
+                <span class="sr-only">Loading...</span>
+            </span>
+                }
+            </button>
+        </div>
     </div>
 </div>
 

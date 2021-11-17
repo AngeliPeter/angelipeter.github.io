@@ -21,6 +21,7 @@ namespace spotify
     {
         public static async Task Main(string[] args)
         {
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("NTMzOTc1QDMxMzkyZTMzMmUzMGRxK2RwSDVxY0Y3ZGlFeTZuU1kxVmk3K0pUUVpSaG9ka1ZLZjJrZVBkU1E9");
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
