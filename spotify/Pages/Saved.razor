@@ -90,9 +90,7 @@
     private async void FetchLikedSongs()
     {
         loadingData = true;
-
-        await spotifyDb.DeleteDatabase();
-        await spotifyDb.Open();
+        await spotifyDb.LikedSongs.ClearStore();
 
         Paging<SavedTrack> nextPaging = new Paging<SavedTrack>();
 

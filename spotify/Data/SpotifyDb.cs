@@ -23,34 +23,35 @@ namespace spotify.Data
         }
     }
 
-    public class AvailableDevices : IDBObjectStore
+    public class SavedPlaylists : IDBObjectStore
     {
         public IDBIndex Id { get; }
-        public IDBIndex Type { get; }
+        public IDBIndex _Name { get; }
+        public IDBIndex Images { get; }
 
 
-        public AvailableDevices(IDBDatabase database) : base(database)
+        public SavedPlaylists(IDBDatabase database) : base(database)
         {
-            Name = "AvailableDevices";
+            Name = "SavedPlaylists";
             KeyPath = "id";
-
-            Id = new IDBIndex(this, "id", "id");
-            Type = new IDBIndex(this, "type", "type");
+            AutoIncrement = true;
+            _Name = new IDBIndex(this, "name", "name");
+            Images = new IDBIndex(this, "images", "images");
         }
     }
 
     public class SpotifyDb : IDBDatabase
     {
         public LikedSongs LikedSongs { get; }
-        public AvailableDevices AvailableDevices { get; }
+        public SavedPlaylists SavedPlaylists { get; }
 
         public SpotifyDb(IJSRuntime jsRuntime) : base(jsRuntime)
         {
             Name = "SpotifyDb";
-            Version = 3;
+            Version = 5;
 
             LikedSongs = new LikedSongs(this);
-            AvailableDevices = new AvailableDevices(this);
+            SavedPlaylists = new SavedPlaylists(this);
         }
     }
 }

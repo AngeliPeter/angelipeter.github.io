@@ -1,0 +1,126 @@
+﻿@page "/playlist"
+@inject NavigationManager NavManager
+@inject ISpotify spotify
+@implements IDisposable
+
+Search
+
+@if (!loadingData)
+{
+    <div class="row">
+        <SfGrid DataSource="@GridData"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true">
+            <GridPageSettings PageSize="15" />
+            <GridColumns>
+                <GridColumn HeaderText="" Width="50">
+                    <Template>
+                        @{
+                            var trackInfo = (context as FullTrack);
+
+                            <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Uri))">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Popularity" HeaderText="Popularity" />
+                <GridColumn Field="Name" HeaderText="Name" />
+                <GridColumn Field="Explicit" HeaderText="Explicit" />
+                <GridColumn Field="DurationMs" HeaderText="DurationMs" />
+                <GridColumn Field="Album.Name" HeaderText="AlbumName" />
+            </GridColumns>
+        </SfGrid>
+    </div>
+    <div class="refresh-button">
+        <button type="button" class="btn btn-primary btn-sm" @onclick="TenMore" disabled="@loadingData">
+            <span>Give me 15 more</span>
+            @if (loadingData)
+            {
+                <span class="spinner-border spinner-border-sm" role="status">
+                    <span class="sr-only">Loading...</span>
+                </span>
+            }
+        </button>
+    </div>
+}
+else
+{
+<span class="spinner-border spinner-border-sm" role="status">
+    <span class="sr-only">Loading...</span>
+</span>
+}
+
+
+@code {
+    SpotifyClient spotifyClient = null;
+    string searchPhrase = "";
+    bool loadingData = true;
+    int offset = 0;
+    public IEnumerable<FullTrack> GridData { get; set; }
+
+    private void UpdateQuery(object sender, LocationChangedEventArgs e)
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("id", out var _searchPhrase))
+        {
+            searchPhrase = HttpUtility.UrlDecode(_searchPhrase);
+            SpotifySearch();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await spotify.Init();
+        if (!result.Success)
+        {
+            NavManager.NavigateTo(result.RedirectURL);
+        }
+        spotifyClient = result.SpotifyObject;
+
+        //UpdateQuery(null, null);
+
+        //NavManager.LocationChanged += UpdateQuery;
+    }
+
+    private void TenMore()
+    {
+        offset++;
+        SpotifySearch(false);
+    }
+
+    private async void SpotifySearch(bool reset = true)
+    {
+        if (reset) { offset = 0; }
+        SearchRequest sr = new SearchRequest(SearchRequest.Types.All, searchPhrase);
+        sr.Offset = offset * 15;
+        sr.Limit = 15;
+        SearchResponse response = await spotifyClient.Search.Item(sr);
+        if (GridData == null || offset == 0) {
+            GridData = response.Tracks.Items;
+        }
+        else
+        {
+            GridData = GridData.Concat(response.Tracks.Items);
+        }
+
+        loadingData = false;
+
+        StateHasChanged();
+    }
+
+    private async void ClickedPlay(string songUri)
+    {
+        Console.WriteLine(songUri);
+        List<string> trackList = new List<string>();
+        trackList.Add(songUri);
+        var track = new PlayerResumePlaybackRequest();
+        track.Uris = trackList;
+        Console.WriteLine(spotifyClient);
+        await spotifyClient.Player.ResumePlayback(track);
+    }
+
+    void IDisposable.Dispose() => NavManager.LocationChanged -= UpdateQuery;
+}
