@@ -1,14 +1,21 @@
-﻿.refresh-button {
-    margin: 15px 0 0 -15px;
+﻿.play-button-inline {
+    cursor: pointer;
+    display: flex;
 }
+
+.refresh-button {
+    margin: 30px 0 0 0;
+}
+
+    .refresh-button span {
+        margin: 0 5px 0 5px;
+    }
 
 .info-container {
     display: flex;
     align-items: center;
-    width: 100%;
-    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 6px;
-    padding: 10px;
+    width: 100%;
     margin-bottom: 30px;
 }
 
@@ -16,7 +23,7 @@
 }
 
 .playlist-picture {
-    height: 100px;
+    height: 200px;
     border-radius: 6px;
 }
 
@@ -25,7 +32,7 @@
 }
 
 .playlist-title {
-    font-size: xx-large;
+    font-size: 50px;
     font-weight: bold;
 }
 
@@ -34,3 +41,15 @@
     font-size: small;
     opacity: 0.5;
 }
+
+.artist-name-link {
+    margin-right: 3px;
+    padding: 1px 3px;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+    .artist-name-link:hover {
+        opacity: 1;
+        text-decoration: underline;
+    }

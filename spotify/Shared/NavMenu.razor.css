@@ -358,3 +358,7 @@
     ::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
+
+.playlist-refresh {
+    margin-bottom: 8px;
+}

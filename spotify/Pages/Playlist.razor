@@ -5,9 +5,10 @@
 @implements IDisposable
 @inject SpotifyDb spotifyDb
 
+
 @if (!loadingData)
 {
-    <div class="info-container">
+<div class="info-container">
         <div class="left-side">
             @if (fullPlaylist.Images[0] != null)
             {
@@ -26,41 +27,88 @@
             } 
         </div>
     </div>
-    <div class="row">
-        <SfGrid DataSource="@GridData"
-            AllowPaging="true"
-            AllowReordering="true"
-            AllowSorting="true"
-            AllowSelection="true">
-            <GridPageSettings PageSize="10" />
-            <GridColumns>
-                <GridColumn HeaderText="" Width="50">
-                    <Template>
-                        @{
-                        var trackInfo = (context as PlaylistTrack<FullTrack>);
+}
 
-                        <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
-                            <i class="bi bi-play-fill"></i>
-                        </div>
-                    }
-                </Template>
-            </GridColumn>
-            <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
-            <GridColumn Field="Track.Name" HeaderText="Name" />
-            <GridColumn Field="Track.Explicit" HeaderText="Explicit" />
-            <GridColumn Field="Track.DurationMs" HeaderText="DurationMs" />
-            <GridColumn Field="Track.Album.Name" HeaderText="AlbumName" />
-            <GridColumn Field="AddedAt" HeaderText="AddedAt" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
-        </GridColumns>
-    </SfGrid>
+<div class="col-lg-12 control-section">
+    @if (!loadingData)
+    {
+        <div class="row">
+            <SfGrid DataSource="@GridData"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true">
+                <GridPageSettings PageSize="10" />
+                <GridColumns>
+                    <GridColumn HeaderText="" AutoFit="true">
+                        <Template>
+                            @{
+                            var trackInfo = (context as PlaylistTrack<FullTrack>);
+
+                            <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn HeaderText="Artists" AutoFit="true">
+                        <Template>
+                        @{
+                            var trackInfo = (context as PlaylistTrack<FullTrack>);
+
+                            foreach (var artist in trackInfo.Track.Artists)
+                            {
+                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Uri))">@artist.Name</span>
+                            }
+                        }
+                        
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Track.DurationMs" HeaderText="Length">
+                        <Template>
+                        @{
+                            var trackInfo = (context as PlaylistTrack<FullTrack>);
+                            long secondsDur = trackInfo.Track.DurationMs / 1000;
+                            long minutesDur = secondsDur / 60;
+                            <span>@($"{minutesDur}:{(secondsDur % 60):D2}")</span>
+                        }
+                        
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Track.Name" HeaderText="Title" AutoFit="true" />
+                <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
+                <GridColumn Field="Track.Explicit" HeaderText="Explicit">
+                        <Template>
+                        @{
+                            var trackInfo = (context as PlaylistTrack<FullTrack>);
+
+                            if (trackInfo.Track.Explicit) {
+                                <i class="bi bi-explicit-fill"></i>
+                            }
+                        }
+                        
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Track.Album.Name" HeaderText="Album" AutoFit="true" />
+                <GridColumn Field="AddedAt" HeaderText="Added" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
+            </GridColumns>
+        </SfGrid>
+    </div>
+    }
 </div>
-}
-else
-{
-    <span class="spinner-border spinner-border-sm" role="status">
-        <span class="sr-only">Loading...</span>
-    </span>
-}
+
+
+<div class="refresh-button">
+    <button type="button" class="btn btn-primary btn-sm" disabled="@loadingData">
+        <span>Refresh your songs</span>
+        @if (loadingData)
+        {
+            <span class="spinner-border spinner-border-sm" role="status">
+                <span class="sr-only">Loading...</span>
+            </span>
+        }
+    </button>
+</div>
 
 
 @code {
@@ -84,6 +132,11 @@ else
             searchPhrase = _searchPhrase;
             SpotifyPlaylistLoad();
         }
+    }
+
+    public void ClickedOnArtist(string name)
+    {
+        Console.WriteLine(name);
     }
 
     protected override async Task OnInitializedAsync()
@@ -116,6 +169,9 @@ else
 
     private async void SpotifyPlaylistLoad(bool reset = true)
     {
+        loadingData = true;
+        StateHasChanged();
+
         fullPlaylist = (await spotifyClient.Playlists.Get(searchPhrase));
         tracks = ConvertObject<List<PlaylistTrack<FullTrack>>>(fullPlaylist.Tracks.Items);
 

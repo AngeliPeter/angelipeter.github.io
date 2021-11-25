@@ -26,16 +26,24 @@
     </div>
 
     <div class="playlist-container">
+
+        <button type="button" class="btn btn-primary btn-sm playlist-refresh" @onclick="RefreshPlaylists" disabled="@loadingData">
+            <span>Refresh your playlists</span>
+        </button>
+
+
         @if (!loadingData)
         {
+
+
             <div class="playlist" @onclick="ClickedLikedSong">
-                    <div class="playlist-image-container">
-                            <img src="https://i.pinimg.com/originals/07/74/a4/0774a492388967e2b5b6d65b95f3fd1a.png" class="playlist-image" />
-                    </div>
-                    <div class="playlist-name">
-                        Liked songs
-                    </div>
+                <div class="playlist-image-container">
+                    <img src="https://i.pinimg.com/originals/07/74/a4/0774a492388967e2b5b6d65b95f3fd1a.png" class="playlist-image" />
                 </div>
+                <div class="playlist-name">
+                    Liked songs
+                </div>
+            </div>
 
             @foreach (var playlist in playlists)
             {
@@ -297,6 +305,11 @@
     private void NavigateToPlaylist(string id)
     {
         NavManager.NavigateTo($"/playlist?id={id}");
+    }
+
+    private void RefreshPlaylists()
+    {
+        FetchPlaylists();
     }
 
 

@@ -60,24 +60,15 @@ namespace spotify.Data
         {
             PKCETokenResponse PKCE = localStorageService.GetItem<PKCETokenResponse>("PKCE");
 
-            Console.WriteLine(" --- INIT --- ");
-
             if (PKCE is null)
             {
-                Console.WriteLine(" --- PKCE null --- ");
                 return (false, RequestNewToken(), null);
             }
 
-            Console.WriteLine(" --- DateTime.UtcNow --- ");
-            Console.WriteLine(DateTime.UtcNow);
-            Console.WriteLine(" --- PKCE.CreatedAt.AddSeconds(PKCE.ExpiresIn) --- ");
-            Console.WriteLine(PKCE.CreatedAt.AddSeconds(PKCE.ExpiresIn));
-
-            if (DateTime.UtcNow > (PKCE.CreatedAt.AddSeconds(PKCE.ExpiresIn)))
+            if (DateTime.UtcNow > (PKCE.CreatedAt.AddSeconds(PKCE.ExpiresIn - 60)))
             {
                 try
                 {
-                    Console.WriteLine(" --- PKCE EXPIRED --- ");
                     var newResponse = await new OAuthClient().RequestToken(new PKCETokenRefreshRequest(ClientId,
                     PKCE.RefreshToken));
                     localStorageService.SetItem<PKCETokenResponse>("PKCE", newResponse);
@@ -85,13 +76,11 @@ namespace spotify.Data
                 }
                 catch
                 {
-                    Console.WriteLine(" --- PKCE EXPIRED ERROR --- ");
                     return (false, RequestNewToken(), null);
                 }
             }
             else
             {
-                Console.WriteLine(" --- PKCE OK --- ");
                 if (!check)
                 {
                     SpotifyObject = new SpotifyClient(PKCE.AccessToken);
