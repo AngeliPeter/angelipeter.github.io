@@ -8,6 +8,6 @@ namespace spotify.Interfaces
 {
     interface ISpotify
     {
-        public Task<(bool Success, string RedirectURL, SpotifyClient SpotifyObject)> Init();
+        public Task<(bool Success, string RedirectURL, SpotifyClient SpotifyObject)> Init(bool check = false);
     }
 }

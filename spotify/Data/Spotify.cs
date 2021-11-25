@@ -23,10 +23,6 @@ namespace spotify.Data
 
             localStorageService.SetItem("verifier", Code.CodeVerifier);
 
-            Console.WriteLine(MyNavigationManager);
-
-
-
             var loginRequest = new LoginRequest(
             new Uri($"{MyNavigationManager.BaseUri}callback"),
             ClientId,
@@ -60,19 +56,28 @@ namespace spotify.Data
             return loginRequest.ToUri().ToString();
         }
 
-        public async Task<(bool Success, string RedirectURL, SpotifyClient SpotifyObject)> Init()
+        public async Task<(bool Success, string RedirectURL, SpotifyClient SpotifyObject)> Init(bool check = false)
         {
             PKCETokenResponse PKCE = localStorageService.GetItem<PKCETokenResponse>("PKCE");
 
+            Console.WriteLine(" --- INIT --- ");
+
             if (PKCE is null)
             {
+                Console.WriteLine(" --- PKCE null --- ");
                 return (false, RequestNewToken(), null);
             }
+
+            Console.WriteLine(" --- DateTime.UtcNow --- ");
+            Console.WriteLine(DateTime.UtcNow);
+            Console.WriteLine(" --- PKCE.CreatedAt.AddSeconds(PKCE.ExpiresIn) --- ");
+            Console.WriteLine(PKCE.CreatedAt.AddSeconds(PKCE.ExpiresIn));
 
             if (DateTime.UtcNow > (PKCE.CreatedAt.AddSeconds(PKCE.ExpiresIn)))
             {
                 try
                 {
+                    Console.WriteLine(" --- PKCE EXPIRED --- ");
                     var newResponse = await new OAuthClient().RequestToken(new PKCETokenRefreshRequest(ClientId,
                     PKCE.RefreshToken));
                     localStorageService.SetItem<PKCETokenResponse>("PKCE", newResponse);
@@ -80,12 +85,21 @@ namespace spotify.Data
                 }
                 catch
                 {
+                    Console.WriteLine(" --- PKCE EXPIRED ERROR --- ");
                     return (false, RequestNewToken(), null);
                 }
             }
             else
             {
-                SpotifyObject = new SpotifyClient(PKCE.AccessToken);
+                Console.WriteLine(" --- PKCE OK --- ");
+                if (!check)
+                {
+                    SpotifyObject = new SpotifyClient(PKCE.AccessToken);
+                }
+                else
+                {
+                    SpotifyObject = null;
+                }
             }
 
             return (true, "none", SpotifyObject);

@@ -25,13 +25,18 @@
         </div>
     </div>
 
-    <div class="liked-songs-container" @onclick="ClickedLikedSong">
-        <div class="liked-songs">Liked songs</div>
-    </div>
-
     <div class="playlist-container">
         @if (!loadingData)
         {
+            <div class="playlist" @onclick="ClickedLikedSong">
+                    <div class="playlist-image-container">
+                            <img src="https://i.pinimg.com/originals/07/74/a4/0774a492388967e2b5b6d65b95f3fd1a.png" class="playlist-image" />
+                    </div>
+                    <div class="playlist-name">
+                        Liked songs
+                    </div>
+                </div>
+
             @foreach (var playlist in playlists)
             {
                 <div class="playlist" @onclick="() => NavigateToPlaylist(playlist.Id)">
@@ -168,7 +173,7 @@
                 <div class="player-song-name">
                     @if (track.Explicit)
                     {
-                        <i class="bi bi-exclamation-square-fill"></i>
+                        <i class="bi bi-explicit-fill"></i>
                     }
                     @track.Name
                 </div>
@@ -351,6 +356,18 @@
                 PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
                 currentlyPlaying = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
             }
+
+            var result = await spotify.Init(true);
+            if (!result.Success)
+            {
+                NavManager.NavigateTo(result.RedirectURL);
+                return;
+            }
+            if (result.SpotifyObject != null)
+            {
+                spotifyClient = result.SpotifyObject;
+            }
+
             StateHasChanged();
             await Task.Delay(1000);
 

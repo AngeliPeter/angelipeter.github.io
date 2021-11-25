@@ -16,63 +16,98 @@
     </div>
 }
 <div class="col-lg-12 control-section">
-    <div class="content-wrapper">
-        @if (!loadingData)
-        {
+    @if (!loadingData)
+    {
+        <div class="row">
+            <SfGrid DataSource="@GridData"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true"
+                @ref="GridRef">
+                <!--<GridEvents DataBound="DataboundHandler" TValue="SavedTrack"></GridEvents>-->
+                <GridPageSettings PageSize="10" />
+                <GridColumns>
+                    <GridColumn HeaderText="" AutoFit="true">
+                        <Template>
+                            @{
+                            var trackInfo = (context as SavedTrack);
 
-            <div class="row">
-                <SfGrid DataSource="@GridData"
-                    AllowPaging="true"
-                    AllowReordering="true"
-                    AllowSorting="true"
-                    AllowSelection="true">
-                    <GridPageSettings PageSize="10" />
-                    <GridColumns>
-                        <GridColumn HeaderText="" Width="50">
-                            <Template>
-                                @{
-                                var trackInfo = (context as SavedTrack);
+                            <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn HeaderText="Artists" AutoFit="true">
+                        <Template>
+                        @{
+                            var trackInfo = (context as SavedTrack);
 
-                                <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
-                                    <i class="bi bi-play-fill"></i>
-                                </div>
+                            foreach (var artist in trackInfo.Track.Artists)
+                            {
+                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Uri))">@artist.Name</span>
                             }
-                        </Template>
-                    </GridColumn>
-                    <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
-                    <GridColumn Field="Track.Name" HeaderText="Name" />
-                    <GridColumn Field="Track.Explicit" HeaderText="Explicit" />
-                    <GridColumn Field="Track.DurationMs" HeaderText="DurationMs" />
-                    <GridColumn Field="Track.Album.Name" HeaderText="AlbumName" />
-                    <GridColumn Field="AddedAt" HeaderText="AddedAt" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
-                </GridColumns>
-            </SfGrid>
-        </div>
-        }
-        else
-        {
-            <div class="progress">
-                <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-        }
+                        }
+                        
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Track.DurationMs" HeaderText="Length">
+                        <Template>
+                        @{
+                            var trackInfo = (context as SavedTrack);
+                            long secondsDur = trackInfo.Track.DurationMs / 1000;
+                            long minutesDur = secondsDur / 60;
+                            <span>@($"{minutesDur}:{(secondsDur % 60):D2}")</span>
+                        }
+                        
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Track.Name" HeaderText="Title" AutoFit="true" />
+                <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
+                <GridColumn Field="Track.Explicit" HeaderText="Explicit">
+                        <Template>
+                        @{
+                            var trackInfo = (context as SavedTrack);
 
-        <div class="refresh-button">
-            <button type="button" class="btn btn-primary btn-sm" @onclick="FetchLikedSongs" disabled="@loadingData">
-                <span>Refresh your songs</span>
-                @if (loadingData)
-                {
-                    <span class="spinner-border spinner-border-sm" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </span>
-                }
-            </button>
-        </div>
+                            if (trackInfo.Track.Explicit) {
+                                <i class="bi bi-explicit-fill"></i>
+                            }
+                        }
+                        
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Track.Album.Name" HeaderText="Album" AutoFit="true" />
+                <GridColumn Field="AddedAt" HeaderText="Added" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
+            </GridColumns>
+        </SfGrid>
     </div>
+    }
+    else
+    {
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    }
+</div>
+
+
+<div class="refresh-button">
+    <button type="button" class="btn btn-primary btn-sm" @onclick="FetchLikedSongs" disabled="@loadingData">
+        <span>Refresh your songs</span>
+        @if (loadingData)
+        {
+            <span class="spinner-border spinner-border-sm" role="status">
+                <span class="sr-only">Loading...</span>
+            </span>
+        }
+    </button>
 </div>
 
 
 @code {
     public IEnumerable<SavedTrack> GridData { get; set; }
+    private SfGrid<SavedTrack> GridRef;
 
     bool loadingData = true;
     float loadingPercentage = 0;
@@ -98,6 +133,16 @@
         {
             loadingData = false;
         }
+    }
+
+   /*public void DataboundHandler(object args)
+    {
+        GridRef.AutoFitColumns();
+    }*/
+
+    public void ClickedOnArtist(string name)
+    {
+        Console.WriteLine(name);
     }
 
     private async void FetchLikedSongs()
