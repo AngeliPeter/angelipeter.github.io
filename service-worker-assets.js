@@ -273,7 +273,7 @@
       "url": "_framework\/icudt.dat"
     },
     {
-      "hash": "sha256-psp4TXXtBoIPhCW9tO2e3NzoEIJlIjLSMBHs0Q21\/jo=",
+      "hash": "sha256-cjY\/1kfP7lm7Z+svw7BUXjX4ThhdsM71ik8Xc8vEPc8=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -409,7 +409,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-GJoXIUFk\/3lLIwDgJW7SrQb0gueBZ2zIABZBiW+oapg=",
+      "hash": "sha256-8fFpgmSeC8+bVKt1lReFI+Qpod5apj0nIPyDiy0ZwuU=",
       "url": "_framework\/spotify.dll"
     },
     {
@@ -721,7 +721,7 @@
       "url": "_framework\/System.Xml.XDocument.dll"
     },
     {
-      "hash": "sha256-3mpVvXqUze\/fhFYWAmfpaNiBNr\/AGuYigi0zf9YdBsA=",
+      "hash": "sha256-YEggNSDehWAsv6jVXeB0+RDkBAa22pSYpNyu8E7d6q8=",
       "url": "spotify.styles.css"
     },
     {
@@ -1185,5 +1185,5 @@
       "url": "_content\/Syncfusion.Blazor.Themes\/tailwind.css"
     }
   ],
-  "version": "bOB6G8US"
+  "version": "jy6kp6ts"
 };
