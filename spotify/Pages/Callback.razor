@@ -1,6 +1,7 @@
 ﻿@page "/callback"
 @inject NavigationManager NavManager
 @inject Blazored.LocalStorage.ISyncLocalStorageService localStorage
+@inject NavigationManager MyNavigationManager
 @code {
     protected override async Task OnInitializedAsync()
     {
@@ -16,7 +17,7 @@
         var verifier = localStorage.GetItem<string>("verifier");
         localStorage.RemoveItem("verifier");
 
-        var initialResponse = await new OAuthClient().RequestToken(new PKCETokenRequest("b98639a71452460780fd041649a6f64e", code, new Uri("https://localhost:44313/callback"), verifier));
+        var initialResponse = await new OAuthClient().RequestToken(new PKCETokenRequest("b98639a71452460780fd041649a6f64e", code, new Uri($"{MyNavigationManager.BaseUri}callback"), verifier));
         localStorage.SetItem<PKCETokenResponse>("PKCE", initialResponse);
 
         NavManager.NavigateTo("/", forceLoad: true);
