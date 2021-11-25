@@ -24,11 +24,6 @@ jobs:
       working-directory: ./spotify
       run: dotnet publish spotify.csproj -c Release -o release --nologo
     
-    # changes the base-tag in index.html from '/' to 'BlazorGitHubPagesDemo' to match GitHub Pages repository subdirectory
-    - name: Change base-tag in index.html from / to SpotifyOnlab
-      working-directory: ./spotify
-      run: sed -i 's/<base href="\/" \/>/<base href="\/Spotify-onlab\/" \/>/g' release/wwwroot/index.html
-    
     # copy index.html to 404.html to serve the same file when a file is not found
     - name: copy index.html to 404.html
       working-directory: ./spotify
