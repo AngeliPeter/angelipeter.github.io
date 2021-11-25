@@ -1,73 +1,88 @@
 ﻿@page "/playlist"
+@using Newtonsoft.Json
 @inject NavigationManager NavManager
 @inject ISpotify spotify
 @implements IDisposable
-
-Search
+@inject SpotifyDb spotifyDb
 
 @if (!loadingData)
 {
+    <div class="info-container">
+        <div class="left-side">
+            @if (fullPlaylist.Images[0] != null)
+            {
+                <img src="@fullPlaylist.Images[0].Url" class="playlist-picture" />
+            }
+            else
+            {
+                <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="playlist-picture" />
+            }
+        </div>
+        <div class="right-side">
+            <div class="playlist-title">@fullPlaylist.Name</div>
+            @if (@fullPlaylist.Description != null)
+            {
+                <div class="playlist-description">@fullPlaylist.Description</div>
+            } 
+        </div>
+    </div>
     <div class="row">
         <SfGrid DataSource="@GridData"
-                AllowPaging="true"
-                AllowReordering="true"
-                AllowSorting="true"
-                AllowSelection="true">
-            <GridPageSettings PageSize="15" />
+            AllowPaging="true"
+            AllowReordering="true"
+            AllowSorting="true"
+            AllowSelection="true">
+            <GridPageSettings PageSize="10" />
             <GridColumns>
                 <GridColumn HeaderText="" Width="50">
                     <Template>
                         @{
-                            var trackInfo = (context as FullTrack);
+                        var trackInfo = (context as PlaylistTrack<FullTrack>);
 
-                            <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Uri))">
-                                <i class="bi bi-play-fill"></i>
-                            </div>
-                        }
-                    </Template>
-                </GridColumn>
-                <GridColumn Field="Popularity" HeaderText="Popularity" />
-                <GridColumn Field="Name" HeaderText="Name" />
-                <GridColumn Field="Explicit" HeaderText="Explicit" />
-                <GridColumn Field="DurationMs" HeaderText="DurationMs" />
-                <GridColumn Field="Album.Name" HeaderText="AlbumName" />
-            </GridColumns>
-        </SfGrid>
-    </div>
-    <div class="refresh-button">
-        <button type="button" class="btn btn-primary btn-sm" @onclick="TenMore" disabled="@loadingData">
-            <span>Give me 15 more</span>
-            @if (loadingData)
-            {
-                <span class="spinner-border spinner-border-sm" role="status">
-                    <span class="sr-only">Loading...</span>
-                </span>
-            }
-        </button>
-    </div>
+                        <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                            <i class="bi bi-play-fill"></i>
+                        </div>
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
+            <GridColumn Field="Track.Name" HeaderText="Name" />
+            <GridColumn Field="Track.Explicit" HeaderText="Explicit" />
+            <GridColumn Field="Track.DurationMs" HeaderText="DurationMs" />
+            <GridColumn Field="Track.Album.Name" HeaderText="AlbumName" />
+            <GridColumn Field="AddedAt" HeaderText="AddedAt" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
+        </GridColumns>
+    </SfGrid>
+</div>
 }
 else
 {
-<span class="spinner-border spinner-border-sm" role="status">
-    <span class="sr-only">Loading...</span>
-</span>
+    <span class="spinner-border spinner-border-sm" role="status">
+        <span class="sr-only">Loading...</span>
+    </span>
 }
 
 
 @code {
     SpotifyClient spotifyClient = null;
+
+    FullPlaylist fullPlaylist = null;
+    List<PlaylistTrack<FullTrack>> tracks = new List<PlaylistTrack<FullTrack>>();
+
+    float loadingPercentage = 0;
+
     string searchPhrase = "";
     bool loadingData = true;
     int offset = 0;
-    public IEnumerable<FullTrack> GridData { get; set; }
+    public IEnumerable<PlaylistTrack<FullTrack>> GridData { get; set; }
 
     private void UpdateQuery(object sender, LocationChangedEventArgs e)
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("id", out var _searchPhrase))
         {
-            searchPhrase = HttpUtility.UrlDecode(_searchPhrase);
-            SpotifySearch();
+            searchPhrase = _searchPhrase;
+            SpotifyPlaylistLoad();
         }
     }
 
@@ -80,33 +95,36 @@ else
         }
         spotifyClient = result.SpotifyObject;
 
-        //UpdateQuery(null, null);
+        UpdateQuery(null, null);
 
-        //NavManager.LocationChanged += UpdateQuery;
+        NavManager.LocationChanged += UpdateQuery;
     }
 
     private void TenMore()
     {
         offset++;
-        SpotifySearch(false);
+        SpotifyPlaylistLoad(false);
     }
 
-    private async void SpotifySearch(bool reset = true)
+    private T ConvertObject<T>(object M) where T : class
     {
-        if (reset) { offset = 0; }
-        SearchRequest sr = new SearchRequest(SearchRequest.Types.All, searchPhrase);
-        sr.Offset = offset * 15;
-        sr.Limit = 15;
-        SearchResponse response = await spotifyClient.Search.Item(sr);
-        if (GridData == null || offset == 0) {
-            GridData = response.Tracks.Items;
-        }
-        else
-        {
-            GridData = GridData.Concat(response.Tracks.Items);
-        }
+        // Serialize the original object to json
+        // Desarialize the json object to the new type
+        var obj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(M));
+        return obj;
+    }
+
+    private async void SpotifyPlaylistLoad(bool reset = true)
+    {
+        fullPlaylist = (await spotifyClient.Playlists.Get(searchPhrase));
+        tracks = ConvertObject<List<PlaylistTrack<FullTrack>>>(fullPlaylist.Tracks.Items);
+
+        GridData = tracks;
 
         loadingData = false;
+        loadingPercentage = 0;
+
+        Console.WriteLine(tracks);
 
         StateHasChanged();
     }

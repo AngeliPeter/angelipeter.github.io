@@ -5,11 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 
 namespace spotify.Data
 {
     public class Spotify : ISpotify
     {
+        public NavigationManager MyNavigationManager { get; set; }
+
         private string ClientId = "b98639a71452460780fd041649a6f64e";
         public SpotifyClient SpotifyObject { get; set; }
         public ISyncLocalStorageService localStorageService;
@@ -20,10 +23,12 @@ namespace spotify.Data
 
             localStorageService.SetItem("verifier", Code.CodeVerifier);
 
-            Console.WriteLine(Code.CodeVerifier);
+            Console.WriteLine(MyNavigationManager);
+
+
 
             var loginRequest = new LoginRequest(
-            new Uri("https://localhost:44313/callback"),
+            new Uri($"{MyNavigationManager.BaseUri}callback"),
             ClientId,
             LoginRequest.ResponseType.Code
             )
@@ -85,9 +90,10 @@ namespace spotify.Data
 
             return (true, "none", SpotifyObject);
         }
-        public Spotify(ISyncLocalStorageService _localStorageService)
+        public Spotify(ISyncLocalStorageService _localStorageService, NavigationManager _MyNavigationManager)
         {
             localStorageService = _localStorageService;
+            MyNavigationManager = _MyNavigationManager;
         }
     }
 }

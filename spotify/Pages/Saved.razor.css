@@ -14,3 +14,36 @@
 .progress {
     margin: 15px 0 0 -15px;
 }
+
+.info-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 30px;
+}
+
+.left-side {
+}
+
+.playlist-picture {
+    height: 100px;
+    border-radius: 6px;
+}
+
+.right-side {
+    margin-left: 50px;
+}
+
+.playlist-title {
+    font-size: xx-large;
+    font-weight: bold;
+}
+
+.playlist-description {
+    margin-top: 10px;
+    font-size: small;
+    opacity: 0.5;
+}

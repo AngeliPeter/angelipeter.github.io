@@ -4,53 +4,66 @@
 @inject ISpotify spotify
 @inject SpotifyDb spotifyDb
 
+@if (!loadingData)
+{
+    <div class="info-container">
+        <div class="left-side">
+            <img src="https://i.pinimg.com/originals/07/74/a4/0774a492388967e2b5b6d65b95f3fd1a.png" class="playlist-picture" />
+        </div>
+        <div class="right-side">
+            <div class="playlist-title">Liked songs</div>
+        </div>
+    </div>
+}
 <div class="col-lg-12 control-section">
     <div class="content-wrapper">
         @if (!loadingData)
         {
+
             <div class="row">
                 <SfGrid DataSource="@GridData"
-                        AllowPaging="true"
-                        AllowReordering="true"
-                        AllowSorting="true"
-                        AllowSelection="true">
+                    AllowPaging="true"
+                    AllowReordering="true"
+                    AllowSorting="true"
+                    AllowSelection="true">
                     <GridPageSettings PageSize="10" />
                     <GridColumns>
                         <GridColumn HeaderText="" Width="50">
                             <Template>
                                 @{
-                                    var trackInfo = (context as SavedTrack);
+                                var trackInfo = (context as SavedTrack);
 
-                                    <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
-                                        <i class="bi bi-play-fill"></i>
-                                    </div>
-                                }
-                            </Template>
-                        </GridColumn>
-                        <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
-                        <GridColumn Field="Track.Name" HeaderText="Name" />
-                        <GridColumn Field="Track.Explicit" HeaderText="Explicit" />
-                        <GridColumn Field="Track.DurationMs" HeaderText="DurationMs" />
-                        <GridColumn Field="Track.Album.Name" HeaderText="AlbumName" />
-                        <GridColumn Field="AddedAt" HeaderText="AddedAt" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
-                    </GridColumns>
-                </SfGrid>
+                                <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                                    <i class="bi bi-play-fill"></i>
+                                </div>
+                            }
+                        </Template>
+                    </GridColumn>
+                    <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
+                    <GridColumn Field="Track.Name" HeaderText="Name" />
+                    <GridColumn Field="Track.Explicit" HeaderText="Explicit" />
+                    <GridColumn Field="Track.DurationMs" HeaderText="DurationMs" />
+                    <GridColumn Field="Track.Album.Name" HeaderText="AlbumName" />
+                    <GridColumn Field="AddedAt" HeaderText="AddedAt" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
+                </GridColumns>
+            </SfGrid>
+        </div>
+        }
+        else
+        {
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
             </div>
         }
-            else { 
-    <div class="progress">
-        <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
-    </div>
-}
 
         <div class="refresh-button">
             <button type="button" class="btn btn-primary btn-sm" @onclick="FetchLikedSongs" disabled="@loadingData">
                 <span>Refresh your songs</span>
                 @if (loadingData)
                 {
-            <span class="spinner-border spinner-border-sm" role="status">
-                <span class="sr-only">Loading...</span>
-            </span>
+                    <span class="spinner-border spinner-border-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </span>
                 }
             </button>
         </div>
