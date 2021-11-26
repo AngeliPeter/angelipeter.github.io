@@ -58,7 +58,7 @@
 
                             foreach (var artist in trackInfo.Track.Artists)
                             {
-                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Uri))">@artist.Name</span>
+                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
                             }
                         }
                         
@@ -134,9 +134,9 @@
         }
     }
 
-    public void ClickedOnArtist(string name)
+    public void ClickedOnArtist(string id)
     {
-        Console.WriteLine(name);
+        NavManager.NavigateTo($"/artist?a={id}");
     }
 
     protected override async Task OnInitializedAsync()

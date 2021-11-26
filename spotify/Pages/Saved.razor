@@ -18,12 +18,15 @@
 <div class="col-lg-12 control-section">
     @if (!loadingData)
     {
+    var Tool = (new List<string>() { "Search" });
+
         <div class="row">
             <SfGrid DataSource="@GridData"
                 AllowPaging="true"
                 AllowReordering="true"
                 AllowSorting="true"
                 AllowSelection="true"
+                Toolbar=@Tool
                 @ref="GridRef">
                 <!--<GridEvents DataBound="DataboundHandler" TValue="SavedTrack"></GridEvents>-->
                 <GridPageSettings PageSize="10" />
@@ -46,7 +49,7 @@
 
                             foreach (var artist in trackInfo.Track.Artists)
                             {
-                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Uri))">@artist.Name</span>
+                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
                             }
                         }
                         
@@ -140,9 +143,9 @@
         GridRef.AutoFitColumns();
     }*/
 
-    public void ClickedOnArtist(string name)
+    public void ClickedOnArtist(string id)
     {
-        Console.WriteLine(name);
+        NavManager.NavigateTo($"/artist?a={id}");
     }
 
     private async void FetchLikedSongs()

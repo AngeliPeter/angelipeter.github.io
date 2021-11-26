@@ -188,7 +188,7 @@
                 <div class="player-song-artist">
                     @foreach (var artist in @track.Artists)
                     {
-                        @($"{artist.Name} ")
+                        <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
                     }
                 </div>
             </div>
@@ -300,6 +300,11 @@
     {
         localStorage.RemoveItem("PKCE");
         NavManager.NavigateTo("/", forceLoad: true);
+    }
+
+    public void ClickedOnArtist(string id)
+    {
+        NavManager.NavigateTo($"/artist?a={id}");
     }
 
     private void NavigateToPlaylist(string id)

@@ -1,0 +1,275 @@
+﻿@page "/artist"
+@using Newtonsoft.Json
+@using System.Globalization
+@inject NavigationManager NavManager
+@inject ISpotify spotify
+@implements IDisposable
+@inject SpotifyDb spotifyDb
+
+
+@if (!loadingData)
+{
+    <div class="info-container">
+        <div class="left-side">
+            @if (artist.Images[0] != null)
+            {
+                <img src="@artist.Images[0].Url" class="playlist-picture" />
+            }
+            else
+            {
+                <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="playlist-picture" />
+            }
+        </div>
+        <div class="right-side">
+            <div class="playlist-title">@artist.Name</div>
+            @if (@artist.Genres.Count() != 0)
+            {
+                <div class="playlist-description">
+                    <i class="bi bi-music-note-beamed"></i>
+                    @foreach (var genre in @artist.Genres)
+                    {
+                        <span class="genre">@genre</span>
+                    }
+                </div>
+            }
+            <div class="playlist-description"><i class="bi bi-people-fill"></i>@(artist.Followers.Total.ToString("n", new NumberFormatInfo {NumberGroupSeparator = " ", NumberDecimalDigits = 0})) followers</div>
+            <div class="playlist-description"><i class="bi bi-graph-up-arrow"></i>@(artist.Popularity) / 100 popularity</div>
+        </div>
+    </div>
+
+
+    <div class="album-header">Albums</div>
+
+    <div class="col-lg-12 control-section">
+        <div class="row">
+            <SfGrid DataSource="@AlbumGridData"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true">
+                <GridPageSettings PageSize="5" />
+                <GridColumns>
+                    <GridColumn HeaderText="" Width="80">
+                        <Template>
+                        @{
+                            var albumInfo = (context as SimpleAlbum);
+                            @if (albumInfo.Images.Count > 0 && albumInfo.Images[0] != null)
+                        {
+                            <img src="@albumInfo.Images[0].Url" class="albumInfo-image" />
+                        }
+                        else
+                        {
+                            <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
+                        }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn HeaderText="Artists">
+                        <Template>
+                        @{
+                            var albumInfo = (context as SimpleAlbum);
+                            foreach (var artist in albumInfo.Artists)
+                            {
+                                    <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Name" HeaderText="Name" />
+                <GridColumn Field="TotalTracks" HeaderText="TotalTracks" />
+                <GridColumn Field="ReleaseDate" HeaderText="ReleaseDate" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
+            </GridColumns>
+        </SfGrid>
+        </div>
+    </div>
+
+    <div class="album-header">Singles and EPs</div>
+
+    <div class="col-lg-12 control-section">
+        <div class="row">
+            <SfGrid DataSource="@EPGridData"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true">
+                <GridPageSettings PageSize="5" />
+                <GridColumns>
+                    <GridColumn HeaderText="" Width="80">
+                        <Template>
+                        @{
+                            var albumInfo = (context as SimpleAlbum);
+                            @if (albumInfo.Images.Count > 0 && albumInfo.Images[0] != null)
+                        {
+                            <img src="@albumInfo.Images[0].Url" class="albumInfo-image" />
+                        }
+                        else
+                        {
+                            <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
+                        }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn HeaderText="Artists">
+                        <Template>
+                        @{
+                            var albumInfo = (context as SimpleAlbum);
+                            foreach (var artist in albumInfo.Artists)
+                            {
+                                    <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Name" HeaderText="Title" />
+                <GridColumn Field="TotalTracks" HeaderText="Number of Tracks" />
+                <GridColumn Field="ReleaseDate" HeaderText="Release Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
+            </GridColumns>
+        </SfGrid>
+    </div>
+</div>
+}
+
+<div class="refresh-button">
+    <button type="button" class="btn btn-primary btn-sm" disabled="@loadingData">
+        <span>Refresh your songs</span>
+        @if (loadingData)
+        {
+            <span class="spinner-border spinner-border-sm" role="status">
+                <span class="sr-only">Loading...</span>
+            </span>
+        }
+    </button>
+</div>
+
+
+@code {
+    SpotifyClient spotifyClient = null;
+
+    FullArtist artist = null;
+    List<SimpleAlbum> albums = new List<SimpleAlbum>();
+    List<SimpleAlbum> eps = new List<SimpleAlbum>();
+
+    float loadingPercentage = 0;
+
+    string searchPhrase = "";
+    bool loadingData = true;
+    int offset = 0;
+    public IEnumerable<SimpleAlbum> AlbumGridData { get; set; }
+    public IEnumerable<SimpleAlbum> EPGridData { get; set; }
+
+    private void UpdateQuery(object sender, LocationChangedEventArgs e)
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("a", out var _searchPhrase))
+        {
+            searchPhrase = _searchPhrase;
+            Console.WriteLine(searchPhrase);
+            SpotifyArtistlistLoad();
+        }
+    }
+
+    public void ClickedOnArtist(string id)
+    {
+        NavManager.NavigateTo($"/artist?a={id}");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await spotify.Init();
+        if (!result.Success)
+        {
+            NavManager.NavigateTo(result.RedirectURL);
+        }
+        spotifyClient = result.SpotifyObject;
+
+        UpdateQuery(null, null);
+
+        NavManager.LocationChanged += UpdateQuery;
+    }
+
+    private void TenMore()
+    {
+        offset++;
+        SpotifyArtistlistLoad(false);
+    }
+
+    private T ConvertObject<T>(object M) where T : class
+    {
+        // Serialize the original object to json
+        // Desarialize the json object to the new type
+        var obj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(M));
+        return obj;
+    }
+
+    private async void SpotifyArtistlistLoad(bool reset = true)
+    {
+        loadingData = true;
+        StateHasChanged();
+
+        /*fullPlaylist = (await spotifyClient.Playlists.Get(searchPhrase));
+        tracks = ConvertObject<List<PlaylistTrack<FullTrack>>>(fullPlaylist.Tracks.Items);*/
+
+        artist = (await spotifyClient.Artists.Get(searchPhrase));
+
+        /// Album ///
+
+        Paging<SimpleAlbum> nextPaging = new Paging<SimpleAlbum>();
+
+        ArtistsAlbumsRequest aar = new ArtistsAlbumsRequest();
+        aar.Limit = 50;
+        aar.IncludeGroupsParam = ArtistsAlbumsRequest.IncludeGroups.Album;
+        int offsetOffset = 0;
+
+        while ((nextPaging = await spotifyClient.Artists.GetAlbums(searchPhrase, aar)).Items.Count() != 0)
+        {
+            albums = albums.Concat(nextPaging.Items).ToList();
+
+            loadingPercentage = (((offsetOffset) * 50 + nextPaging.Items.Count()) / (float)nextPaging.Total * 100);
+
+            offsetOffset++;
+            aar.Offset = offsetOffset * 50;
+        }
+
+        AlbumGridData = albums;
+
+        /// EPs ///
+
+        aar = new ArtistsAlbumsRequest();
+        aar.Limit = 50;
+        aar.IncludeGroupsParam = ArtistsAlbumsRequest.IncludeGroups.Single;
+        offsetOffset = 0;
+
+        while ((nextPaging = await spotifyClient.Artists.GetAlbums(searchPhrase, aar)).Items.Count() != 0)
+        {
+            eps = eps.Concat(nextPaging.Items).ToList();
+
+            loadingPercentage = (((offsetOffset) * 50 + nextPaging.Items.Count()) / (float)nextPaging.Total * 100);
+
+            offsetOffset++;
+            aar.Offset = offsetOffset * 50;
+        }
+
+        EPGridData = eps;
+
+        loadingData = false;
+
+        StateHasChanged();
+    }
+
+    private async void ClickedPlay(string songUri)
+    {
+        Console.WriteLine(songUri);
+        List<string> trackList = new List<string>();
+        trackList.Add(songUri);
+        var track = new PlayerResumePlaybackRequest();
+        track.Uris = trackList;
+        Console.WriteLine(spotifyClient);
+        await spotifyClient.Player.ResumePlayback(track);
+    }
+
+    void IDisposable.Dispose() => NavManager.LocationChanged -= UpdateQuery;
+}
