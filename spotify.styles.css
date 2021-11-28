@@ -50,13 +50,15 @@
     opacity: 0.5;
 }
 
-.playlist-description i[b-3dflb7382y] {
-    margin-right: 5px;
+    .playlist-description i[b-3dflb7382y] {
+        margin-right: 10px;
+    }
+
+.comma[b-3dflb7382y] {
+    opacity: 0.5;
 }
 
 .artist-name-link[b-3dflb7382y] {
-    margin-right: 3px;
-    padding: 1px 3px;
     opacity: 0.5;
     cursor: pointer;
 }
@@ -105,8 +107,19 @@
 .label[b-3dflb7382y] {
     margin-top: 10px;
     font-size: small;
-    font-variant: small-caps;
     opacity: 0.7;
+}
+
+.genre[b-3dflb7382y] {
+    margin-right: 5px;
+    padding: 0 8px;
+    background-color: white;
+    color: black;
+    border-radius: 6px;
+}
+
+.comma[b-3dflb7382y] {
+    opacity: 0.5;
 }
 /* /Pages/Artist.razor.rz.scp.css */
 .play-button-inline[b-2d8hnw67lo] {
@@ -154,11 +167,14 @@
 }
 
 .playlist-description i[b-2d8hnw67lo] {
-    margin-right: 5px;
+    margin-right: 10px;
+}
+
+.comma[b-2d8hnw67lo] {
+    opacity: 0.5;
 }
 
 .artist-name-link[b-2d8hnw67lo] {
-    margin-right: 3px;
     opacity: 0.5;
     cursor: pointer;
 }
@@ -169,7 +185,11 @@
     }
 
 .genre[b-2d8hnw67lo] {
-    margin-right: 10px;
+    margin-right: 5px;
+    padding: 0 8px;
+    background-color: white;
+    color: black;
+    border-radius: 6px;
 }
 
 .albums-container[b-2d8hnw67lo] {
@@ -192,7 +212,82 @@
     width: 50px;
     border-radius: 6px;
 }
+
+.comma[b-2d8hnw67lo] {
+    opacity: 0.5;
+}
 /* /Pages/Playlist.razor.rz.scp.css */
+/*.play-button-inline {
+    cursor: pointer;
+    display: flex;
+}
+
+.refresh-button {
+    margin: 30px 0 0 0;
+}
+
+    .refresh-button span {
+        margin: 0 5px 0 5px;
+    }
+
+.info-container {
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.left-side {
+}
+
+.playlist-picture {
+    height: 200px;
+    border-radius: 6px;
+}
+
+.right-side {
+    margin-left: 50px;
+}
+
+.playlist-title {
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.playlist-description {
+    margin-top: 10px;
+    font-size: small;
+    opacity: 0.5;
+}
+
+.artist-name-link {
+    margin-right: 3px;
+    padding: 1px 3px;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+    .artist-name-link:hover {
+        opacity: 1;
+        text-decoration: underline;
+    }
+
+.play-album i {
+    font-size: 50px;
+    cursor: pointer;
+    display: flex;
+}
+
+.actual-play {
+    margin-right: 20px;
+}
+
+.play-button-inline {
+    cursor: pointer;
+    display: flex;
+}*/
+
 .play-button-inline[b-bnxuiyca97] {
     cursor: pointer;
     display: flex;
@@ -229,6 +324,13 @@
 .playlist-title[b-bnxuiyca97] {
     font-size: 50px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.playlist-header[b-bnxuiyca97] {
+    display: flex;
+    flex-direction: column;
 }
 
 .playlist-description[b-bnxuiyca97] {
@@ -237,9 +339,14 @@
     opacity: 0.5;
 }
 
+    .playlist-description i[b-bnxuiyca97] {
+        margin-right: 5px;
+    }
+.comma[b-bnxuiyca97] {
+    opacity: 0.5;
+}
+
 .artist-name-link[b-bnxuiyca97] {
-    margin-right: 3px;
-    padding: 1px 3px;
     opacity: 0.5;
     cursor: pointer;
 }
@@ -248,6 +355,48 @@
         opacity: 1;
         text-decoration: underline;
     }
+
+.genre[b-bnxuiyca97] {
+    margin-right: 10px;
+}
+
+.albums-container[b-bnxuiyca97] {
+    display: flex;
+    overflow: scroll;
+}
+
+.album-container[b-bnxuiyca97] {
+    display: flex;
+    flex-direction: column;
+}
+
+.album-header[b-bnxuiyca97] {
+    font-size: 50px;
+    font-weight: bold;
+    margin: 30px 0;
+}
+
+.albumInfo-image[b-bnxuiyca97] {
+    width: 50px;
+    border-radius: 6px;
+}
+
+.play-album i[b-bnxuiyca97] {
+    font-size: 50px;
+    cursor: pointer;
+    display: flex;
+}
+
+.actual-play[b-bnxuiyca97] {
+    margin-right: 20px;
+}
+
+.label[b-bnxuiyca97] {
+    margin-top: 10px;
+    font-size: small;
+    font-variant: small-caps;
+    opacity: 0.7;
+}
 /* /Pages/Saved.razor.rz.scp.css */
 .play-button-inline[b-o5whrgj8na] {
     cursor: pointer;
@@ -293,9 +442,11 @@
     opacity: 0.5;
 }
 
+.comma[b-o5whrgj8na] {
+    opacity: 0.5;
+}
+
 .artist-name-link[b-o5whrgj8na] {
-    margin-right: 3px;
-    padding: 1px 3px;
     opacity: 0.5;
     cursor: pointer;
 }
@@ -738,8 +889,12 @@
 .playlist-refresh[b-k6naj5on4p] {
     margin-bottom: 8px;
 }
+
+.comma[b-k6naj5on4p] {
+    opacity: 0.5;
+}
+
 .artist-name-link[b-k6naj5on4p] {
-    margin-right: 3px;
     opacity: 0.5;
     cursor: pointer;
 }
