@@ -1,3 +1,113 @@
+/* /Pages/Album.razor.rz.scp.css */
+.play-button-inline[b-3dflb7382y] {
+    cursor: pointer;
+    display: flex;
+}
+
+.refresh-button[b-3dflb7382y] {
+    margin: 30px 0 0 0;
+}
+
+    .refresh-button span[b-3dflb7382y] {
+        margin: 0 5px 0 5px;
+    }
+
+.info-container[b-3dflb7382y] {
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.left-side[b-3dflb7382y] {
+}
+
+.playlist-picture[b-3dflb7382y] {
+    height: 200px;
+    border-radius: 6px;
+}
+
+.right-side[b-3dflb7382y] {
+    margin-left: 50px;
+}
+
+.playlist-title[b-3dflb7382y] {
+    font-size: 50px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.playlist-header[b-3dflb7382y] {
+    display: flex;
+    flex-direction: column;
+}
+
+.playlist-description[b-3dflb7382y] {
+    margin-top: 10px;
+    font-size: small;
+    opacity: 0.5;
+}
+
+.playlist-description i[b-3dflb7382y] {
+    margin-right: 5px;
+}
+
+.artist-name-link[b-3dflb7382y] {
+    margin-right: 3px;
+    padding: 1px 3px;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+    .artist-name-link:hover[b-3dflb7382y] {
+        opacity: 1;
+        text-decoration: underline;
+    }
+
+.genre[b-3dflb7382y] {
+    margin-right: 10px;
+}
+
+.albums-container[b-3dflb7382y] {
+    display: flex;
+    overflow: scroll;
+}
+
+.album-container[b-3dflb7382y] {
+    display: flex;
+    flex-direction: column;
+}
+
+.album-header[b-3dflb7382y] {
+    font-size: 50px;
+    font-weight: bold;
+    margin: 30px 0;
+}
+
+.albumInfo-image[b-3dflb7382y] {
+    width: 50px;
+    border-radius: 6px;
+}
+
+.play-album i[b-3dflb7382y] {
+
+    font-size: 50px;
+    cursor: pointer;
+    display: flex;
+}
+
+.actual-play[b-3dflb7382y] {
+    margin-right: 20px;
+}
+
+.label[b-3dflb7382y] {
+    margin-top: 10px;
+    font-size: small;
+    font-variant: small-caps;
+    opacity: 0.7;
+}
 /* /Pages/Artist.razor.rz.scp.css */
 .play-button-inline[b-2d8hnw67lo] {
     cursor: pointer;
@@ -49,7 +159,6 @@
 
 .artist-name-link[b-2d8hnw67lo] {
     margin-right: 3px;
-    padding: 1px 3px;
     opacity: 0.5;
     cursor: pointer;
 }
