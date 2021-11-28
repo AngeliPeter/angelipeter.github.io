@@ -362,8 +362,12 @@
 .playlist-refresh {
     margin-bottom: 8px;
 }
+
+.comma {
+    opacity: 0.5;
+}
+
 .artist-name-link {
-    margin-right: 3px;
     opacity: 0.5;
     cursor: pointer;
 }

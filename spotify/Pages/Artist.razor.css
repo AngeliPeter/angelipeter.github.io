@@ -43,11 +43,14 @@
 }
 
 .playlist-description i {
-    margin-right: 5px;
+    margin-right: 10px;
+}
+
+.comma {
+    opacity: 0.5;
 }
 
 .artist-name-link {
-    margin-right: 3px;
     opacity: 0.5;
     cursor: pointer;
 }
@@ -58,7 +61,11 @@
     }
 
 .genre {
-    margin-right: 10px;
+    margin-right: 5px;
+    padding: 0 8px;
+    background-color: white;
+    color: black;
+    border-radius: 6px;
 }
 
 .albums-container {
@@ -80,4 +87,8 @@
 .albumInfo-image {
     width: 50px;
     border-radius: 6px;
+}
+
+.comma {
+    opacity: 0.5;
 }

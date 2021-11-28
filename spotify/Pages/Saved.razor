@@ -48,9 +48,14 @@
                         @{
                             var trackInfo = (context as SavedTrack);
 
-                            foreach (var artist in trackInfo.Track.Artists)
+                            @for (int i = 0; i < @trackInfo.Track.Artists.Count; i++)
                             {
+                                SimpleArtist artist = @trackInfo.Track.Artists.ElementAt(i);
                                 <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                if (i + 1 < @trackInfo.Track.Artists.Count)
+                                {
+                                    <span class="comma">, </span>
+                                }
                             }
                         }
 

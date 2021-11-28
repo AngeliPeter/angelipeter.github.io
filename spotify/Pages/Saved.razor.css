@@ -42,9 +42,11 @@
     opacity: 0.5;
 }
 
+.comma {
+    opacity: 0.5;
+}
+
 .artist-name-link {
-    margin-right: 3px;
-    padding: 1px 3px;
     opacity: 0.5;
     cursor: pointer;
 }

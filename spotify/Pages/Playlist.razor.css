@@ -1,4 +1,4 @@
-﻿.play-button-inline {
+﻿/*.play-button-inline {
     cursor: pointer;
     display: flex;
 }
@@ -53,3 +53,128 @@
         opacity: 1;
         text-decoration: underline;
     }
+
+.play-album i {
+    font-size: 50px;
+    cursor: pointer;
+    display: flex;
+}
+
+.actual-play {
+    margin-right: 20px;
+}
+
+.play-button-inline {
+    cursor: pointer;
+    display: flex;
+}*/
+
+.play-button-inline {
+    cursor: pointer;
+    display: flex;
+}
+
+.refresh-button {
+    margin: 30px 0 0 0;
+}
+
+    .refresh-button span {
+        margin: 0 5px 0 5px;
+    }
+
+.info-container {
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.left-side {
+}
+
+.playlist-picture {
+    height: 200px;
+    border-radius: 6px;
+}
+
+.right-side {
+    margin-left: 50px;
+}
+
+.playlist-title {
+    font-size: 50px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.playlist-header {
+    display: flex;
+    flex-direction: column;
+}
+
+.playlist-description {
+    margin-top: 10px;
+    font-size: small;
+    opacity: 0.5;
+}
+
+    .playlist-description i {
+        margin-right: 5px;
+    }
+.comma {
+    opacity: 0.5;
+}
+
+.artist-name-link {
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+    .artist-name-link:hover {
+        opacity: 1;
+        text-decoration: underline;
+    }
+
+.genre {
+    margin-right: 10px;
+}
+
+.albums-container {
+    display: flex;
+    overflow: scroll;
+}
+
+.album-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.album-header {
+    font-size: 50px;
+    font-weight: bold;
+    margin: 30px 0;
+}
+
+.albumInfo-image {
+    width: 50px;
+    border-radius: 6px;
+}
+
+.play-album i {
+    font-size: 50px;
+    cursor: pointer;
+    display: flex;
+}
+
+.actual-play {
+    margin-right: 20px;
+}
+
+.label {
+    margin-top: 10px;
+    font-size: small;
+    font-variant: small-caps;
+    opacity: 0.7;
+}

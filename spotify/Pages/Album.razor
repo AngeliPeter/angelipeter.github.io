@@ -38,9 +38,11 @@
                     }
                 </div>
             </div>
-            <div class="playlist-description"><i class="bi bi-list-ol"></i>@album.TotalTracks</div>
-            <div class="playlist-description"><i class="bi bi-graph-up-arrow"></i>@album.Popularity / 100 popularity</div>
-            <div class="playlist-description"><i class="bi bi-calendar-event-fill"></i>@album.ReleaseDate</div>
+            <div class="playlist-description"><i class="bi bi-list-ol"></i><span class="genre">@album.TotalTracks</span></div>
+            <div class="playlist-description">
+                <i class="bi bi-graph-up-arrow"></i><span class="genre">@(album.Popularity)</span> / 100 popularity
+            </div>
+            <div class="playlist-description"><i class="bi bi-calendar-event-fill"></i><span class="genre">@album.ReleaseDate</span></div>
         </div>
     </div>
 }
@@ -77,9 +79,14 @@
                         @{
                             var trackInfo = (context as FullTrack);
 
-                            foreach (var artist in trackInfo.Artists)
+                            @for (int i = 0; i < @trackInfo.Artists.Count; i++)
                             {
+                                SimpleArtist artist = @trackInfo.Artists.ElementAt(i);
                                 <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                if (i + 1 < @trackInfo.Artists.Count)
+                                {
+                                    <span class="comma">, </span>
+                                }
                             }
                         }
 
@@ -243,10 +250,10 @@
 
     private async void ClickedAlbumPlay()
     {
-            PlayerResumePlaybackRequest alb = new PlayerResumePlaybackRequest();
-            alb.ContextUri = album.Uri;
-            await spotifyClient.Player.ResumePlayback(alb);
+        PlayerResumePlaybackRequest alb = new PlayerResumePlaybackRequest();
+        alb.ContextUri = album.Uri;
+        await spotifyClient.Player.ResumePlayback(alb);
     }
-    
+
     void IDisposable.Dispose() => NavManager.LocationChanged -= UpdateQuery;
 }

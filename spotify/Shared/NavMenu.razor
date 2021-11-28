@@ -27,11 +27,6 @@
 
     <div class="playlist-container">
 
-        <button type="button" class="btn btn-primary btn-sm playlist-refresh" @onclick="RefreshPlaylists" disabled="@loadingData">
-            <span>Refresh your playlists</span>
-        </button>
-
-
         @if (!loadingData)
         {
 
@@ -63,6 +58,10 @@
                     </div>
                 </div>
             }
+
+            <button type="button" class="btn btn-primary btn-sm playlist-refresh" @onclick="RefreshPlaylists" disabled="@loadingData">
+                <span>Refresh your playlists</span>
+            </button>
         }
         else
         {
@@ -186,9 +185,14 @@
                     @track.Name
                 </div>
                 <div class="player-song-artist">
-                    @foreach (var artist in @track.Artists)
+                    @for (int i = 0; i < @track.Artists.Count; i++)
                     {
+                        SimpleArtist artist = @track.Artists.ElementAt(i);
                         <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                        if (i + 1 < @track.Artists.Count)
+                        {
+                            <span class="comma">, </span>
+                        }
                     }
                 </div>
             </div>

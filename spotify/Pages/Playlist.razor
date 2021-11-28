@@ -20,7 +20,22 @@
             }
         </div>
         <div class="right-side">
-            <div class="playlist-title">@fullPlaylist.Name</div>
+            <div class="playlist-title">
+                <div class="actual-play">@fullPlaylist.Name</div>
+                <div class="play-album"
+                 @onmouseenter="@(() => onPlay = true)"
+                 @onmouseleave="@(() => onPlay = false)">
+
+                    @if (onPlay)
+                    {
+                        <i class="bi bi-play-fill" @onclick="@(ClickedAlbumPlay)"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-play" @onclick="@(ClickedAlbumPlay)"></i>
+                    }
+                </div>
+            </div>
             @if (@fullPlaylist.Description != null)
             {
                 <div class="playlist-description">@fullPlaylist.Description</div>
@@ -56,9 +71,14 @@
                         @{
                             var trackInfo = (context as PlaylistTrack<FullTrack>);
 
-                            foreach (var artist in trackInfo.Track.Artists)
+                            @for (int i = 0; i < @trackInfo.Track.Artists.Count; i++)
                             {
+                                SimpleArtist artist = @trackInfo.Track.Artists.ElementAt(i);
                                 <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                if (i + 1 < @trackInfo.Track.Artists.Count)
+                                {
+                                    <span class="comma">, </span>
+                                }
                             }
                         }
                         
@@ -115,6 +135,7 @@
     SpotifyClient spotifyClient = null;
 
     FullPlaylist fullPlaylist = null;
+    bool onPlay = false;
     List<PlaylistTrack<FullTrack>> tracks = new List<PlaylistTrack<FullTrack>>();
 
     float loadingPercentage = 0;
@@ -194,6 +215,13 @@
         track.Uris = trackList;
         Console.WriteLine(spotifyClient);
         await spotifyClient.Player.ResumePlayback(track);
+    }
+
+        private async void ClickedAlbumPlay()
+    {
+            PlayerResumePlaybackRequest alb = new PlayerResumePlaybackRequest();
+            alb.ContextUri = fullPlaylist.Uri;
+            await spotifyClient.Player.ResumePlayback(alb);
     }
 
     void IDisposable.Dispose() => NavManager.LocationChanged -= UpdateQuery;
