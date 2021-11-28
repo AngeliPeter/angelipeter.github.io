@@ -468,7 +468,7 @@
 }
 
 .main[b-eznqwqlqg0] {
-    flex: 8;
+    flex: 11;
     background-color: #000000;
     color: white;
 }
@@ -476,7 +476,7 @@
 .sidebar[b-eznqwqlqg0] {
     background: rgb(0,0,0);
     background: linear-gradient(45deg, rgba(0,0,0,1) 0%, rgba(4,26,18,1) 50%, rgba(13,87,60,1) 100%);
-    flex: 2;
+    flex: 3;
 }
 
 .top-row[b-eznqwqlqg0] {

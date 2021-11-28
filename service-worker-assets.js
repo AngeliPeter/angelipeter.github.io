@@ -721,7 +721,7 @@
       "url": "_framework\/System.Xml.XDocument.dll"
     },
     {
-      "hash": "sha256-MRuotxRJUJ75JBe8n\/9E6Y1q2ZMVra4PJjdEStp8MFU=",
+      "hash": "sha256-zzm+lDadsxmln7jI8BRFKkYewxyrMNvrga3idu0UGNI=",
       "url": "spotify.styles.css"
     },
     {
@@ -1185,5 +1185,5 @@
       "url": "_content\/Syncfusion.Blazor.Themes\/tailwind.css"
     }
   ],
-  "version": "CvtSEN3\/"
+  "version": "1wq0epb2"
 };
