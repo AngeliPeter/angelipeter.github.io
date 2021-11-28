@@ -34,6 +34,13 @@
 .playlist-title {
     font-size: 50px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.playlist-header {
+    display: flex;
+    flex-direction: column;
 }
 
 .playlist-description {
@@ -48,6 +55,7 @@
 
 .artist-name-link {
     margin-right: 3px;
+    padding: 1px 3px;
     opacity: 0.5;
     cursor: pointer;
 }
@@ -80,4 +88,22 @@
 .albumInfo-image {
     width: 50px;
     border-radius: 6px;
+}
+
+.play-album i {
+
+    font-size: 50px;
+    cursor: pointer;
+    display: flex;
+}
+
+.actual-play {
+    margin-right: 20px;
+}
+
+.label {
+    margin-top: 10px;
+    font-size: small;
+    font-variant: small-caps;
+    opacity: 0.7;
 }

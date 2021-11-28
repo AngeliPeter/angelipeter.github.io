@@ -49,41 +49,60 @@
                 AllowSelection="true">
                 <GridPageSettings PageSize="5" />
                 <GridColumns>
-                    <GridColumn HeaderText="" Width="80">
+                    <GridColumn HeaderText="" AutoFit="true">
                         <Template>
-                        @{
-                            var albumInfo = (context as SimpleAlbum);
-                            @if (albumInfo.Images.Count > 0 && albumInfo.Images[0] != null)
-                        {
-                            <img src="@albumInfo.Images[0].Url" class="albumInfo-image" />
-                        }
-                        else
-                        {
-                            <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
-                        }
-                        }
+                            @{
+                            var albumInfo = (context as FullAlbum);
 
+                            <div class="play-button-inline" @onclick="@(() => ClickedAlbumPlay(albumInfo.Uri))">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+                        }
                     </Template>
                 </GridColumn>
-                <GridColumn HeaderText="Artists">
-                        <Template>
+                <GridColumn HeaderText="" Width="80">
+                    <Template>
                         @{
-                            var albumInfo = (context as SimpleAlbum);
-                            foreach (var artist in albumInfo.Artists)
+                            var albumInfo = (context as FullAlbum);
+                            @if (albumInfo.Images.Count > 0 && albumInfo.Images[0] != null)
                             {
-                                    <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                <img src="@albumInfo.Images[0].Url" class="albumInfo-image" />
+                            }
+                            else
+                            {
+                                <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
                             }
                         }
 
                     </Template>
                 </GridColumn>
-                <GridColumn Field="Name" HeaderText="Name" />
-                <GridColumn Field="TotalTracks" HeaderText="TotalTracks" />
-                <GridColumn Field="ReleaseDate" HeaderText="ReleaseDate" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
+                <GridColumn HeaderText="Artists">
+                    <Template>
+                        @{
+                            var albumInfo = (context as FullAlbum);
+                            foreach (var artist in albumInfo.Artists)
+                            {
+                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Name" HeaderText="Album Title">
+                    <Template>
+                        @{
+                            var albumInfo = (context as FullAlbum);
+                            <div class="artist-name-link" @onclick="@(() => ClickedOnAlbum(albumInfo.Id))">@albumInfo.Name</div>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="TotalTracks" HeaderText="Number of Tracks" />
+                <GridColumn Field="Popularity" HeaderText="Popularity" />
+                <GridColumn Field="ReleaseDate" HeaderText="Release Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
             </GridColumns>
         </SfGrid>
-        </div>
     </div>
+</div>
 
     <div class="album-header">Singles and EPs</div>
 
@@ -96,41 +115,60 @@
                 AllowSelection="true">
                 <GridPageSettings PageSize="5" />
                 <GridColumns>
-                    <GridColumn HeaderText="" Width="80">
+                    <GridColumn HeaderText="" AutoFit="true">
                         <Template>
-                        @{
-                            var albumInfo = (context as SimpleAlbum);
-                            @if (albumInfo.Images.Count > 0 && albumInfo.Images[0] != null)
-                        {
-                            <img src="@albumInfo.Images[0].Url" class="albumInfo-image" />
-                        }
-                        else
-                        {
-                            <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
-                        }
-                        }
+                            @{
+                            var albumInfo = (context as FullAlbum);
 
+                            <div class="play-button-inline" @onclick="@(() => ClickedAlbumPlay(albumInfo.Uri))">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+                        }
                     </Template>
                 </GridColumn>
-                <GridColumn HeaderText="Artists">
-                        <Template>
+                <GridColumn HeaderText="" Width="80">
+                    <Template>
                         @{
-                            var albumInfo = (context as SimpleAlbum);
-                            foreach (var artist in albumInfo.Artists)
+                            var albumInfo = (context as FullAlbum);
+                            @if (albumInfo.Images.Count > 0 && albumInfo.Images[0] != null)
                             {
-                                    <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                <img src="@albumInfo.Images[0].Url" class="albumInfo-image" />
+                            }
+                            else
+                            {
+                                <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
                             }
                         }
 
                     </Template>
                 </GridColumn>
-                <GridColumn Field="Name" HeaderText="Title" />
+                <GridColumn HeaderText="Artists">
+                    <Template>
+                        @{
+                            var albumInfo = (context as FullAlbum);
+                            foreach (var artist in albumInfo.Artists)
+                            {
+                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Name" HeaderText="Album Title">
+                    <Template>
+                        @{
+                            var albumInfo = (context as FullAlbum);
+                            <div class="artist-name-link" @onclick="@(() => ClickedOnAlbum(albumInfo.Id))">@albumInfo.Name</div>
+                        }
+                    </Template>
+                </GridColumn>
                 <GridColumn Field="TotalTracks" HeaderText="Number of Tracks" />
+                <GridColumn Field="Popularity" HeaderText="Popularity" />
                 <GridColumn Field="ReleaseDate" HeaderText="Release Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
             </GridColumns>
         </SfGrid>
+        </div>
     </div>
-</div>
 }
 
 <div class="refresh-button">
@@ -150,16 +188,16 @@
     SpotifyClient spotifyClient = null;
 
     FullArtist artist = null;
-    List<SimpleAlbum> albums = new List<SimpleAlbum>();
-    List<SimpleAlbum> eps = new List<SimpleAlbum>();
+    List<FullAlbum> albums = new List<FullAlbum>();
+    List<FullAlbum> eps = new List<FullAlbum>();
 
     float loadingPercentage = 0;
 
     string searchPhrase = "";
     bool loadingData = true;
     int offset = 0;
-    public IEnumerable<SimpleAlbum> AlbumGridData { get; set; }
-    public IEnumerable<SimpleAlbum> EPGridData { get; set; }
+    public IEnumerable<FullAlbum> AlbumGridData { get; set; }
+    public IEnumerable<FullAlbum> EPGridData { get; set; }
 
     private void UpdateQuery(object sender, LocationChangedEventArgs e)
     {
@@ -175,6 +213,11 @@
     public void ClickedOnArtist(string id)
     {
         NavManager.NavigateTo($"/artist?a={id}");
+    }
+
+    public void ClickedOnAlbum(string id)
+    {
+        NavManager.NavigateTo($"/album?albumId={id}");
     }
 
     protected override async Task OnInitializedAsync()
@@ -207,6 +250,8 @@
 
     private async void SpotifyArtistlistLoad(bool reset = true)
     {
+        albums = new List<FullAlbum>();
+        eps = new List<FullAlbum>();
         loadingData = true;
         StateHasChanged();
 
@@ -226,7 +271,12 @@
 
         while ((nextPaging = await spotifyClient.Artists.GetAlbums(searchPhrase, aar)).Items.Count() != 0)
         {
-            albums = albums.Concat(nextPaging.Items).ToList();
+            //albums = albums.Concat(nextPaging.Items).ToList();
+
+            nextPaging.Items.ForEach(async simpleAlbum =>
+            {
+                albums.Add(await spotifyClient.Albums.Get(simpleAlbum.Id));
+            });
 
             loadingPercentage = (((offsetOffset) * 50 + nextPaging.Items.Count()) / (float)nextPaging.Total * 100);
 
@@ -245,7 +295,10 @@
 
         while ((nextPaging = await spotifyClient.Artists.GetAlbums(searchPhrase, aar)).Items.Count() != 0)
         {
-            eps = eps.Concat(nextPaging.Items).ToList();
+            nextPaging.Items.ForEach(async simpleAlbum =>
+            {
+                eps.Add(await spotifyClient.Albums.Get(simpleAlbum.Id));
+            });
 
             loadingPercentage = (((offsetOffset) * 50 + nextPaging.Items.Count()) / (float)nextPaging.Total * 100);
 
@@ -269,6 +322,13 @@
         track.Uris = trackList;
         Console.WriteLine(spotifyClient);
         await spotifyClient.Player.ResumePlayback(track);
+    }
+
+    private async void ClickedAlbumPlay(string albumUri)
+    {
+        PlayerResumePlaybackRequest alb = new PlayerResumePlaybackRequest();
+        alb.ContextUri = albumUri;
+        await spotifyClient.Player.ResumePlayback(alb);
     }
 
     void IDisposable.Dispose() => NavManager.LocationChanged -= UpdateQuery;

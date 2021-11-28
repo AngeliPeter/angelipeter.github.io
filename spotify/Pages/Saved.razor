@@ -15,11 +15,12 @@
         </div>
     </div>
 }
-<div class="col-lg-12 control-section">
-    @if (!loadingData)
-    {
+
+@if (!loadingData)
+{
     var Tool = (new List<string>() { "Search" });
 
+    <div class="col-lg-12 control-section">
         <div class="row">
             <SfGrid DataSource="@GridData"
                 AllowPaging="true"
@@ -29,7 +30,7 @@
                 Toolbar=@Tool
                 @ref="GridRef">
                 <!--<GridEvents DataBound="DataboundHandler" TValue="SavedTrack"></GridEvents>-->
-                <GridPageSettings PageSize="10" />
+            <GridPageSettings PageSize="10" />
                 <GridColumns>
                     <GridColumn HeaderText="" AutoFit="true">
                         <Template>
@@ -43,7 +44,7 @@
                     </Template>
                 </GridColumn>
                 <GridColumn HeaderText="Artists" AutoFit="true">
-                        <Template>
+                    <Template>
                         @{
                             var trackInfo = (context as SavedTrack);
 
@@ -52,32 +53,33 @@
                                 <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
                             }
                         }
-                        
+
                     </Template>
                 </GridColumn>
                 <GridColumn Field="Track.DurationMs" HeaderText="Length">
-                        <Template>
+                    <Template>
                         @{
                             var trackInfo = (context as SavedTrack);
                             long secondsDur = trackInfo.Track.DurationMs / 1000;
                             long minutesDur = secondsDur / 60;
                             <span>@($"{minutesDur}:{(secondsDur % 60):D2}")</span>
                         }
-                        
+
                     </Template>
                 </GridColumn>
                 <GridColumn Field="Track.Name" HeaderText="Title" AutoFit="true" />
                 <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
                 <GridColumn Field="Track.Explicit" HeaderText="Explicit">
-                        <Template>
+                    <Template>
                         @{
                             var trackInfo = (context as SavedTrack);
 
-                            if (trackInfo.Track.Explicit) {
+                            if (trackInfo.Track.Explicit)
+                            {
                                 <i class="bi bi-explicit-fill"></i>
                             }
                         }
-                        
+
                     </Template>
                 </GridColumn>
                 <GridColumn Field="Track.Album.Name" HeaderText="Album" AutoFit="true" />
@@ -85,14 +87,16 @@
             </GridColumns>
         </SfGrid>
     </div>
-    }
-    else
-    {
-        <div class="progress">
-            <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-    }
 </div>
+
+}
+
+@if (loadingData)
+{
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+}
 
 
 <div class="refresh-button">
@@ -138,10 +142,10 @@
         }
     }
 
-   /*public void DataboundHandler(object args)
-    {
-        GridRef.AutoFitColumns();
-    }*/
+    /*public void DataboundHandler(object args)
+     {
+         GridRef.AutoFitColumns();
+     }*/
 
     public void ClickedOnArtist(string id)
     {
