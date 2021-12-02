@@ -62,13 +62,11 @@ namespace spotify.Data
 
             if (PKCE is null)
             {
-                Console.WriteLine("PKCE NULL");
                 return (false, RequestNewToken(), null);
             }
 
             if (DateTime.UtcNow > (PKCE.CreatedAt.AddSeconds(PKCE.ExpiresIn - 60)))
             {
-                Console.WriteLine("PKCE EXPIRED");
                 try
                 {
                     var newResponse = await new OAuthClient().RequestToken(new PKCETokenRefreshRequest(ClientId,
@@ -78,13 +76,11 @@ namespace spotify.Data
                 }
                 catch
                 {
-                    Console.WriteLine("PKCE CATCH");
                     return (false, RequestNewToken(), null);
                 }
             }
             else
             {
-                Console.WriteLine("PKCE NOT EXPIRED");
                 if (!check)
                 {
                     SpotifyObject = new SpotifyClient(PKCE.AccessToken);

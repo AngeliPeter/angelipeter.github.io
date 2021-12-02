@@ -20,7 +20,11 @@ namespace spotify.Utils
             trackList.Add(songUri);
             var track = new PlayerResumePlaybackRequest();
             track.Uris = trackList;
-            await spotifyClient.Player.ResumePlayback(track);
+            PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
+            if ((await spotifyClient.Player.GetCurrentlyPlaying(pcpr)) != null)
+            {
+                await spotifyClient.Player.ResumePlayback(track);
+            }
         }
     }
 }

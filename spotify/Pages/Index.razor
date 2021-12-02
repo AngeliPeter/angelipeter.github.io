@@ -1,13 +1,174 @@
 ﻿@page "/"
+@using System.Globalization
 @inject NavigationManager NavManager
 @inject ISpotify spotify
+@inject NavigationUtils NavUtils
+@inject PlayUtils PlayUtils
 
-<h1>Hello @name!</h1>
+@if (!loadingData)
+{
+    var Tool = (new List<string>() { "Search" });
 
+    <div class="album-header">Your Top Artists</div>
+    <div class="col-lg-12 control-section">
+        <div class="row">
+            <SfGrid DataSource="@ArtistsGridData"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true"
+                Toolbar=@Tool>
+                <GridPageSettings PageSize="3" />
+                <GridColumns>
+                    <GridColumn HeaderText="" Width="80">
+                        <Template>
+                            @{
+                            var artistInfo = (context as FullArtist);
+                            @if (artistInfo.Images.Count > 0 && artistInfo.Images[0] != null)
+                            {
+                                <img src="@artistInfo.Images[0].Url" class="albumInfo-image" />
+                            }
+                            else
+                            {
+                                <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Name" HeaderText="Name">
+                    <Template>
+                        @{
+                            var artist = (context as FullArtist);
+                            <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Popularity" HeaderText="Popularity" />
+                <GridColumn Field="Followers.Total" HeaderText="Followers">
+
+                    <Template>
+                        @{
+                            var artist = (context as FullArtist);
+                            <span>@(artist.Followers.Total.ToString("n", new NumberFormatInfo {NumberGroupSeparator = " ", NumberDecimalDigits = 0}))</span>
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn HeaderText="Genres" AutoFit="true">
+                    <Template>
+                        @{
+                            var artistInfo = (context as FullArtist);
+
+                            @for (int i = 0; i < @artistInfo.Genres.Count; i++)
+                            {
+                                string genre = artistInfo.Genres.ElementAt(i);
+                                <span>@genre</span>
+                                if (i + 1 < artistInfo.Genres.Count)
+                                {
+                                    <span>, </span>
+                                }
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+
+            </GridColumns>
+        </SfGrid>
+    </div>
+</div>
+
+    <div class="album-header">Your Top Tracks</div>
+    <div class="col-lg-12 control-section">
+        <div class="row">
+            <SfGrid DataSource="@TracksGridData"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true"
+                Toolbar=@Tool>
+                <GridPageSettings PageSize="5" />
+                <GridColumns>
+                    <GridColumn HeaderText="" AutoFit="true">
+                        <Template>
+                            @{
+                            var trackInfo = (context as FullTrack);
+
+                            <div class="play-button-inline" @onclick="@(() => PlayUtils.ClickedPlay(trackInfo.Uri, spotifyClient))">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="TrackNumber" HeaderText="#" AutoFit="true" />
+                <GridColumn Field="Name" HeaderText="Title" />
+                <GridColumn Field="Artists.Count" HeaderText="Artists">
+                    <Template>
+                        @{
+                            var trackInfo = (context as FullTrack);
+
+                            @for (int i = 0; i < @trackInfo.Artists.Count; i++)
+                            {
+                                SimpleArtist artist = @trackInfo.Artists.ElementAt(i);
+                                <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                if (i + 1 < @trackInfo.Artists.Count)
+                                {
+                                    <span class="comma">, </span>
+                                }
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Popularity" HeaderText="Popularity" />
+                <GridColumn Field="DurationMs" HeaderText="Length">
+                    <Template>
+                        @{
+                            var trackInfo = (context as FullTrack);
+                            long secondsDur = trackInfo.DurationMs / 1000;
+                            long minutesDur = secondsDur / 60;
+                            <span>@($"{minutesDur}:{(secondsDur % 60):D2}")</span>
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Explicit" HeaderText="Explicit">
+                    <Template>
+                        @{
+                            var trackInfo = (context as FullTrack);
+
+                            if (trackInfo.Explicit)
+                            {
+                                <i class="bi bi-explicit-fill"></i>
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+            </GridColumns>
+        </SfGrid>
+    </div>
+</div>
+
+}
+else
+{
+    <span class="spinner-border spinner-border-sm" role="status">
+        <span class="sr-only">Loading...</span>
+    </span>
+
+}
 @code {
     string name = "loading...";
     string image = "https://www.lollok.hu/wp-content/uploads/2019/11/placeholder.png";
     SpotifyClient spotifyClient = null;
+    bool loadingData = true;
+    List<FullTrack> topTracks = new List<FullTrack>();
+    List<FullArtist> topArtists = new List<FullArtist>();
+    public IEnumerable<FullTrack> TracksGridData { get; set; }
+    public IEnumerable<FullArtist> ArtistsGridData { get; set; }
 
     List<SimplePlaylist> albums = new List<SimplePlaylist>();
 
@@ -26,6 +187,19 @@
         image = user.Images.FirstOrDefault().Url;
 
         albums = (await spotifyClient.Playlists.CurrentUsers()).Items;
+
+        FetchData();
+    }
+
+
+    private async void FetchData()
+    {
+        topTracks = (await spotifyClient.Personalization.GetTopTracks()).Items;
+        TracksGridData = topTracks;
+        topArtists = (await spotifyClient.Personalization.GetTopArtists()).Items;
+        ArtistsGridData = topArtists;
+        loadingData = false;
+        StateHasChanged();
 
     }
 }

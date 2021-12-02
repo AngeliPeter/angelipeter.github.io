@@ -69,7 +69,7 @@
     </div>
 
     <div class="player-container">
-        @if (currentlyPlaying != null && currentlyPlaying.Item != null && currentlyPlaying.Item.Type == ItemType.Track)
+        @if (currentlyPlaying != null && currentlyPlaying.Item != null && currentlyPlaying.Item.Type == ItemType.Track && currentDevice != null)
         {
             FullTrack track = (FullTrack)currentlyPlaying.Item;
             int progress = currentlyPlaying.ProgressMs ?? 0;
@@ -297,11 +297,15 @@
 
         PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
         currentlyPlaying = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
-        List<string> ids = new List<string>();
-        ids.Add(((FullTrack)currentlyPlaying.Item).Id);
 
-        LibraryCheckTracksRequest lctr = new LibraryCheckTracksRequest(ids);
-        liked = (await spotifyClient.Library.CheckTracks(lctr)).FirstOrDefault(false);
+        if (currentlyPlaying != null)
+        {
+            List<string> ids = new List<string>();
+            ids.Add(((FullTrack)currentlyPlaying.Item).Id);
+
+            LibraryCheckTracksRequest lctr = new LibraryCheckTracksRequest(ids);
+            liked = (await spotifyClient.Library.CheckTracks(lctr)).FirstOrDefault(false);
+        }
 
         await spotifyDb.Open();
 
@@ -332,7 +336,6 @@
     {
         List<string> deviceList = new List<string>();
         string selectedDevice = devices.Find(d => d.Name.Equals(selectedString)).Id;
-        Console.WriteLine(selectedDevice);
         deviceList.Add(selectedDevice);
         PlayerTransferPlaybackRequest ptpq = new PlayerTransferPlaybackRequest(deviceList);
         await spotifyClient.Player.TransferPlayback(ptpq);
@@ -405,12 +408,16 @@
                 if (currentlyPlaying == null || likedRefresh || ((FullTrack)currentlyPlaying.Item).Id != ((FullTrack)currentlyPlayingNow.Item).Id)
                 {
                     likedRefresh = false;
-                    currentlyPlaying = currentlyPlayingNow;
-                    List<string> ids = new List<string>();
-                    ids.Add(((FullTrack)currentlyPlayingNow.Item).Id);
+                    if (currentlyPlayingNow != null)
+                    {
 
-                    LibraryCheckTracksRequest lctr = new LibraryCheckTracksRequest(ids);
-                    liked = (await spotifyClient.Library.CheckTracks(lctr)).FirstOrDefault(false);
+                        currentlyPlaying = currentlyPlayingNow;
+                        List<string> ids = new List<string>();
+                        ids.Add(((FullTrack)currentlyPlayingNow.Item).Id);
+
+                        LibraryCheckTracksRequest lctr = new LibraryCheckTracksRequest(ids);
+                        liked = (await spotifyClient.Library.CheckTracks(lctr)).FirstOrDefault(false);
+                    }
                 }
                 else
                 {
