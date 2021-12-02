@@ -29,6 +29,16 @@
 
         @if (!loadingData)
         {
+            @if (@loadedFromCache)
+            {
+                <div class="playlist-refresh cache"><i class="bi bi-lightning-charge-fill"></i><span>Loaded from memory</span></div>
+            }
+            else
+            {
+                
+                <div class="playlist-refresh spotify"><i class="bi bi-spotify"></i><span>Synced with Spotify</span></div>
+            }
+
             <div class="playlist" @onclick="NavUtils.ClickedLikedSong">
                 <div class="playlist-image-container">
                     <img src="https://i.pinimg.com/originals/07/74/a4/0774a492388967e2b5b6d65b95f3fd1a.png" class="playlist-image" />
@@ -37,6 +47,7 @@
                     Liked songs
                 </div>
             </div>
+            
 
             @foreach (var playlist in playlists)
             {
@@ -59,6 +70,10 @@
 
             <button type="button" class="btn btn-primary btn-sm playlist-refresh" @onclick="RefreshPlaylists" disabled="@loadingData">
                 <span>Refresh your playlists</span>
+            </button>
+
+            <button type="button" class="btn btn-danger btn-sm playlist-refresh" @onclick="DeleteData" disabled="@loadingData">
+                <span>Delete all local data</span>
             </button>
         }
         else
@@ -260,7 +275,7 @@
     bool onPlay = false;
     bool onPause = false;
     bool onNext = false;
-
+    bool loadedFromCache = true;
     bool liked = false;
     bool likedRefresh = false;
 
@@ -315,6 +330,7 @@
         }
         else
         {
+            loadedFromCache = true;
             loadingData = false;
         }
         StartTimerAsync(true);
@@ -345,9 +361,10 @@
 
     private async void FetchPlaylists()
     {
-        await spotifyDb.SavedPlaylists.ClearStore();
-
         loadingData = true;
+
+        StateHasChanged();
+        await spotifyDb.SavedPlaylists.ClearStore();
 
         Paging<SimplePlaylist> nextPaging = new Paging<SimplePlaylist>();
 
@@ -366,6 +383,8 @@
         playlists = (await spotifyDb.SavedPlaylists.GetAll<SimplePlaylist>()).OrderBy(playlist => playlist.Name).ToList();
 
         loadingData = false;
+
+        loadedFromCache = false;
         StateHasChanged();
     }
 
@@ -387,6 +406,12 @@
             likedRefresh = true;
         }
 
+    }
+
+    private async void DeleteData()
+    {
+        await spotifyDb.DeleteDatabase();
+        FetchPlaylists();
     }
 
 

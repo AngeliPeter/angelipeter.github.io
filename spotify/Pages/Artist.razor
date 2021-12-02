@@ -40,6 +40,15 @@
             <div class="playlist-description">
                 <i class="bi bi-graph-up-arrow"></i><span class="genre">@(artist.Popularity)</span> / 100 popularity
             </div>
+            @if (@loadedFromCache)
+            {
+                <div class="playlist-refresh cache"><i class="bi bi-lightning-charge-fill"></i><span>Loaded from memory</span></div>
+            }
+            else
+            {
+                
+                <div class="playlist-refresh spotify"><i class="bi bi-spotify"></i><span>Synced with Spotify</span></div>
+            }
         </div>
     </div>
 
@@ -226,10 +235,16 @@
                 <GridColumn HeaderText="Artists">
                     <Template>
                         @{
-                            var albumInfo = (context as SimpleAlbum);
-                            foreach (var artist in albumInfo.Artists)
+                           var albumInfo = (context as SimpleAlbum);
+
+                            @for (int i = 0; i < @albumInfo.Artists.Count; i++)
                             {
+                                SimpleArtist artist = @albumInfo.Artists.ElementAt(i);
                                 <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                if (i + 1 < @albumInfo.Artists.Count)
+                                {
+                                    <span class="comma">, </span>
+                                }
                             }
                         }
 
@@ -253,8 +268,8 @@
 }
 
 <div class="refresh-button">
-    <button type="button" class="btn btn-primary btn-sm" disabled="@loadingData">
-        <span>Refresh your songs</span>
+    <button type="button" class="btn btn-primary btn-sm" disabled="@loadingData" @onclick="SpotifyArtistlistLoad">
+        <span>Refresh artist page</span>
         @if (loadingData)
         {
             <span class="spinner-border spinner-border-sm" role="status">
@@ -273,22 +288,42 @@
     List<SimpleAlbum> eps = new List<SimpleAlbum>();
     List<FullTrack> topTracks = new List<FullTrack>();
 
+    ArtistWrapper artistWrapper = new ArtistWrapper();
+
     float loadingPercentage = 0;
 
     string searchPhrase = "";
     bool loadingData = true;
+    bool loadedFromCache = true;
     int offset = 0;
     public IEnumerable<SimpleAlbum> AlbumGridData { get; set; }
     public IEnumerable<SimpleAlbum> EPGridData { get; set; }
     public IEnumerable<FullTrack> TracksGridData { get; set; }
 
-    private void UpdateQuery(object sender, LocationChangedEventArgs e)
+    private async void UpdateQuery(object sender, LocationChangedEventArgs e)
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("artistId", out var _searchPhrase))
         {
+            loadingData = true;
+            StateHasChanged();
             searchPhrase = _searchPhrase;
-            SpotifyArtistlistLoad();
+            await spotifyDb.Open();
+
+            if ((artistWrapper = await spotifyDb.SavedArtists.Get<string, ArtistWrapper>(searchPhrase)) == null)
+            {
+                SpotifyArtistlistLoad();
+            }
+            else
+            {
+                loadedFromCache = true;
+                AlbumGridData = artistWrapper.Albums;
+                TracksGridData = artistWrapper.TopTracks;
+                EPGridData = artistWrapper.Eps;
+                artist = artistWrapper.Artist;
+                loadingData = false;
+                StateHasChanged();
+            }
         }
     }
 
@@ -308,6 +343,7 @@
 
     private async void SpotifyArtistlistLoad()
     {
+        await spotifyDb.SavedArtists.Delete(searchPhrase);
         albums = new List<SimpleAlbum>();
         eps = new List<SimpleAlbum>();
         topTracks = new List<FullTrack>();
@@ -364,6 +400,17 @@
         }
 
         EPGridData = eps;
+
+        artistWrapper = new ArtistWrapper();
+        artistWrapper.Albums = albums;
+        artistWrapper.TopTracks = topTracks;
+        artistWrapper.Eps = eps;
+        artistWrapper.Artist = artist;
+        artistWrapper.Id = searchPhrase;
+
+        await spotifyDb.SavedArtists.Add(artistWrapper);
+
+        loadedFromCache = false;
 
         loadingData = false;
 

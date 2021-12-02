@@ -52,20 +52,49 @@ namespace spotify.Data
         }
     }
 
+    public class SavedFullAlbum : IDBObjectStore
+    {
+        public string Id { get; }
+
+
+        public SavedFullAlbum(IDBDatabase database) : base(database)
+        {
+            Name = "SavedFullAlbum";
+            KeyPath = "id";
+        }
+    }
+
+    public class SavedArtists : IDBObjectStore
+    {
+        public string Id { get; }
+
+
+        public SavedArtists(IDBDatabase database) : base(database)
+        {
+            Name = "SavedArtists";
+            KeyPath = "id";
+        }
+    }
+
+
     public class SpotifyDb : IDBDatabase
     {
         public LikedSongs LikedSongs { get; }
         public SavedFullPlaylist SavedFullPlaylist { get; }
         public SavedPlaylists SavedPlaylists { get; }
+        public SavedFullAlbum SavedFullAlbum { get; }
+        public SavedArtists SavedArtists { get; }
 
         public SpotifyDb(IJSRuntime jsRuntime) : base(jsRuntime)
         {
             Name = "SpotifyDb";
-            Version = 8;
+            Version = 10;
 
             LikedSongs = new LikedSongs(this);
             SavedFullPlaylist = new SavedFullPlaylist(this);
             SavedPlaylists = new SavedPlaylists(this);
+            SavedFullAlbum = new SavedFullAlbum(this);
+            SavedArtists = new SavedArtists(this);
         }
     }
 }

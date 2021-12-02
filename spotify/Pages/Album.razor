@@ -45,6 +45,15 @@
                 <i class="bi bi-graph-up-arrow"></i><span class="genre">@(album.Popularity)</span> / 100 popularity
             </div>
             <div class="playlist-description"><i class="bi bi-calendar-event-fill"></i><span class="genre">@album.ReleaseDate</span></div>
+            @if (@loadedFromCache)
+            {
+                <div class="playlist-refresh cache"><i class="bi bi-lightning-charge-fill"></i><span>Loaded from memory</span></div>
+            }
+            else
+            {
+                
+                <div class="playlist-refresh spotify"><i class="bi bi-spotify"></i><span>Synced with Spotify</span></div>
+            }
         </div>
     </div>
 }
@@ -126,16 +135,9 @@
 
 }
 
-@if (loadingData)
-{
-    <div class="progress">
-        <div class="progress-bar" role="progressbar" style=@($"width: {loadingPercentage}%") aria-valuenow=@(loadingPercentage) aria-valuemin="0" aria-valuemax="100"></div>
-    </div>
-}
-
 <div class="refresh-button">
-    <button type="button" class="btn btn-primary btn-sm" disabled="@loadingData">
-        <span>Refresh your songs</span>
+    <button type="button" class="btn btn-primary btn-sm" disabled="@loadingData" @onclick="SpotifyAlbumLoad">
+        <span>Refresh the album</span>
         @if (loadingData)
         {
             <span class="spinner-border spinner-border-sm" role="status">
@@ -146,10 +148,11 @@
 </div>
 
 
+
 @code {
     SpotifyClient spotifyClient = null;
 
-    FullAlbum album = null;
+    FullAlbumWrapper album = null;
 
     List<FullTrack> tracks = new List<FullTrack>();
 
@@ -159,16 +162,31 @@
 
     string searchPhrase = "";
     bool loadingData = true;
+    bool loadedFromCache = true;
     int offset = 0;
     public IEnumerable<FullTrack> GridData { get; set; }
 
-    private void UpdateQuery(object sender, LocationChangedEventArgs e)
+    private async void UpdateQuery(object sender, LocationChangedEventArgs e)
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("albumId", out var _searchPhrase))
         {
+            loadingData = true;
+            StateHasChanged();
             searchPhrase = _searchPhrase;
-            SpotifyAlbumLoad();
+            await spotifyDb.Open();
+
+            if ((album = await spotifyDb.SavedFullAlbum.Get<string, FullAlbumWrapper>(searchPhrase)) == null)
+            {
+                SpotifyAlbumLoad();
+            }
+            else
+            {
+                loadedFromCache = true;
+                GridData = album.FullTracks;
+                loadingData = false;
+                StateHasChanged();
+            }
         }
     }
 
@@ -186,12 +204,20 @@
         NavManager.LocationChanged += UpdateQuery;
     }
 
+    private T ConvertObject<T>(object M) where T : class
+    {
+        var obj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(M));
+        return obj;
+    }
+
     private async void SpotifyAlbumLoad()
     {
         loadingData = true;
         StateHasChanged();
 
-        album = (await spotifyClient.Albums.Get(searchPhrase));
+        await spotifyDb.SavedFullAlbum.Delete(searchPhrase);
+
+        album = ConvertObject<FullAlbumWrapper>(await spotifyClient.Albums.Get(searchPhrase));
 
         Paging<SimpleTrack> nextPaging = new Paging<SimpleTrack>();
 
@@ -214,10 +240,15 @@
             StateHasChanged();
         }
 
+        album.FullTracks = tracks;
+
+        await spotifyDb.SavedFullAlbum.Add(album);
+
         GridData = tracks;
 
         loadingData = false;
         loadingPercentage = 0;
+        loadedFromCache = false;
 
         StateHasChanged();
     }

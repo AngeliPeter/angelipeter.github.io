@@ -407,3 +407,23 @@
 .player-image-container:hover .like {
     opacity: 1;
 }
+
+.playlist-refresh {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    font-size: small;
+}
+
+    .playlist-refresh i {
+        margin-right: 5px;
+        display: flex;
+    }
+
+    .playlist-refresh.spotify {
+        color: #1DB954;
+    }
+
+    .playlist-refresh.cache {
+        color: #FE5000;
+    }
