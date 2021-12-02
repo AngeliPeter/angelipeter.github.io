@@ -4,11 +4,13 @@
 @inject ISpotify spotify
 @implements IDisposable
 @inject SpotifyDb spotifyDb
+@inject NavigationUtils NavUtils
+@inject PlayUtils PlayUtils
 
 
 @if (!loadingData)
 {
-<div class="info-container">
+    <div class="info-container">
         <div class="left-side">
             @if (fullPlaylist.Images[0] != null)
             {
@@ -28,18 +30,27 @@
 
                     @if (onPlay)
                     {
-                        <i class="bi bi-play-fill" @onclick="@(ClickedAlbumPlay)"></i>
+                        <i class="bi bi-play-fill" @onclick="@(() => PlayUtils.ClickedAlbumPlay(fullPlaylist.Uri, spotifyClient))"></i>
                     }
                     else
                     {
-                        <i class="bi bi-play" @onclick="@(ClickedAlbumPlay)"></i>
+                        <i class="bi bi-play" @onclick="@(() => PlayUtils.ClickedAlbumPlay(fullPlaylist.Uri, spotifyClient))"></i>
                     }
                 </div>
             </div>
             @if (@fullPlaylist.Description != null)
             {
                 <div class="playlist-description">@fullPlaylist.Description</div>
-            } 
+            }
+            @if (@loadedFromCache)
+            {
+                <div class="playlist-refresh cache"><i class="bi bi-lightning-charge-fill"></i><span>Loaded from memory</span></div>
+            }
+            else
+            {
+                
+                <div class="playlist-refresh spotify"><i class="bi bi-spotify"></i><span>Synced with Spotify</span></div>
+            }
         </div>
     </div>
 }
@@ -60,53 +71,54 @@
                             @{
                             var trackInfo = (context as PlaylistTrack<FullTrack>);
 
-                            <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                            <div class="play-button-inline" @onclick="@(() => PlayUtils.ClickedPlay(trackInfo.Track.Uri, spotifyClient))">
                                 <i class="bi bi-play-fill"></i>
                             </div>
                         }
                     </Template>
                 </GridColumn>
-                <GridColumn HeaderText="Artists" AutoFit="true">
-                        <Template>
+                <GridColumn Field="Track.Artists.Count" HeaderText="Artists" AutoFit="true">
+                    <Template>
                         @{
                             var trackInfo = (context as PlaylistTrack<FullTrack>);
 
                             @for (int i = 0; i < @trackInfo.Track.Artists.Count; i++)
                             {
                                 SimpleArtist artist = @trackInfo.Track.Artists.ElementAt(i);
-                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
                                 if (i + 1 < @trackInfo.Track.Artists.Count)
                                 {
                                     <span class="comma">, </span>
                                 }
                             }
                         }
-                        
+
                     </Template>
                 </GridColumn>
                 <GridColumn Field="Track.DurationMs" HeaderText="Length">
-                        <Template>
+                    <Template>
                         @{
                             var trackInfo = (context as PlaylistTrack<FullTrack>);
                             long secondsDur = trackInfo.Track.DurationMs / 1000;
                             long minutesDur = secondsDur / 60;
                             <span>@($"{minutesDur}:{(secondsDur % 60):D2}")</span>
                         }
-                        
+
                     </Template>
                 </GridColumn>
                 <GridColumn Field="Track.Name" HeaderText="Title" AutoFit="true" />
                 <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
                 <GridColumn Field="Track.Explicit" HeaderText="Explicit">
-                        <Template>
+                    <Template>
                         @{
                             var trackInfo = (context as PlaylistTrack<FullTrack>);
 
-                            if (trackInfo.Track.Explicit) {
+                            if (trackInfo.Track.Explicit)
+                            {
                                 <i class="bi bi-explicit-fill"></i>
                             }
                         }
-                        
+
                     </Template>
                 </GridColumn>
                 <GridColumn Field="Track.Album.Name" HeaderText="Album" AutoFit="true" />
@@ -119,8 +131,8 @@
 
 
 <div class="refresh-button">
-    <button type="button" class="btn btn-primary btn-sm" disabled="@loadingData">
-        <span>Refresh your songs</span>
+    <button type="button" class="btn btn-primary btn-sm" disabled="@loadingData" @onclick="SpotifyPlaylistLoad">
+        <span>Refresh the playlist</span>
         @if (loadingData)
         {
             <span class="spinner-border spinner-border-sm" role="status">
@@ -134,8 +146,9 @@
 @code {
     SpotifyClient spotifyClient = null;
 
-    FullPlaylist fullPlaylist = null;
+    FullPlaylistWrapper fullPlaylist = null;
     bool onPlay = false;
+    bool loadedFromCache = true;
     List<PlaylistTrack<FullTrack>> tracks = new List<PlaylistTrack<FullTrack>>();
 
     float loadingPercentage = 0;
@@ -145,28 +158,39 @@
     int offset = 0;
     public IEnumerable<PlaylistTrack<FullTrack>> GridData { get; set; }
 
-    private void UpdateQuery(object sender, LocationChangedEventArgs e)
+    private async void UpdateQuery(object sender, LocationChangedEventArgs e)
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("id", out var _searchPhrase))
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("playlistId", out var _searchPhrase))
         {
+            loadingData = true;
+            StateHasChanged();
             searchPhrase = _searchPhrase;
-            SpotifyPlaylistLoad();
-        }
-    }
+            await spotifyDb.Open();
 
-    public void ClickedOnArtist(string id)
-    {
-        NavManager.NavigateTo($"/artist?a={id}");
+            if ((fullPlaylist = await spotifyDb.SavedFullPlaylist.Get<string, FullPlaylistWrapper>(searchPhrase)) == null)
+            {
+                SpotifyPlaylistLoad();
+            }
+            else
+            {
+                loadedFromCache = true;
+                GridData = fullPlaylist.Tracks.Items.ToList();
+                loadingData = false;
+                StateHasChanged();
+            }
+        }
     }
 
     protected override async Task OnInitializedAsync()
     {
         var result = await spotify.Init();
+
         if (!result.Success)
         {
             NavManager.NavigateTo(result.RedirectURL);
         }
+
         spotifyClient = result.SpotifyObject;
 
         UpdateQuery(null, null);
@@ -174,54 +198,31 @@
         NavManager.LocationChanged += UpdateQuery;
     }
 
-    private void TenMore()
-    {
-        offset++;
-        SpotifyPlaylistLoad(false);
-    }
-
     private T ConvertObject<T>(object M) where T : class
     {
-        // Serialize the original object to json
-        // Desarialize the json object to the new type
         var obj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(M));
         return obj;
     }
 
-    private async void SpotifyPlaylistLoad(bool reset = true)
+    private async void SpotifyPlaylistLoad()
     {
+        await spotifyDb.SavedFullPlaylist.Delete(searchPhrase);
         loadingData = true;
         StateHasChanged();
 
-        fullPlaylist = (await spotifyClient.Playlists.Get(searchPhrase));
-        tracks = ConvertObject<List<PlaylistTrack<FullTrack>>>(fullPlaylist.Tracks.Items);
+        fullPlaylist = ConvertObject<FullPlaylistWrapper>((await spotifyClient.Playlists.Get(searchPhrase)));
+
+        await spotifyDb.SavedFullPlaylist.Add(fullPlaylist);
+
+        tracks = fullPlaylist.Tracks.Items;
 
         GridData = tracks;
 
         loadingData = false;
         loadingPercentage = 0;
-
-        Console.WriteLine(tracks);
+        loadedFromCache = false;
 
         StateHasChanged();
-    }
-
-    private async void ClickedPlay(string songUri)
-    {
-        Console.WriteLine(songUri);
-        List<string> trackList = new List<string>();
-        trackList.Add(songUri);
-        var track = new PlayerResumePlaybackRequest();
-        track.Uris = trackList;
-        Console.WriteLine(spotifyClient);
-        await spotifyClient.Player.ResumePlayback(track);
-    }
-
-        private async void ClickedAlbumPlay()
-    {
-            PlayerResumePlaybackRequest alb = new PlayerResumePlaybackRequest();
-            alb.ContextUri = fullPlaylist.Uri;
-            await spotifyClient.Player.ResumePlayback(alb);
     }
 
     void IDisposable.Dispose() => NavManager.LocationChanged -= UpdateQuery;

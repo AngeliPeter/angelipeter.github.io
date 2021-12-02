@@ -35,7 +35,9 @@
             if (!String.IsNullOrEmpty(SearchPhrase))
             {
                 NavManager.NavigateTo($"/search?q={HttpUtility.UrlEncode(SearchPhrase)}");
+                SearchPhrase = "";
                 StateHasChanged();
+
             }
         });
     }

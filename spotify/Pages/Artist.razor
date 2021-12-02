@@ -5,6 +5,8 @@
 @inject ISpotify spotify
 @implements IDisposable
 @inject SpotifyDb spotifyDb
+@inject NavigationUtils NavUtils
+@inject PlayUtils PlayUtils
 
 
 @if (!loadingData)
@@ -60,7 +62,7 @@
                             @{
                             var trackInfo = (context as FullTrack);
 
-                            <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Uri))">
+                            <div class="play-button-inline" @onclick="@(() => PlayUtils.ClickedPlay(trackInfo.Uri, spotifyClient))">
                                 <i class="bi bi-play-fill"></i>
                             </div>
                         }
@@ -68,7 +70,7 @@
                 </GridColumn>
                 <GridColumn Field="TrackNumber" HeaderText="#" AutoFit="true" />
                 <GridColumn Field="Name" HeaderText="Title" />
-                <GridColumn HeaderText="Artists">
+                <GridColumn Field="Artists.Count" HeaderText="Artists">
                     <Template>
                         @{
                             var trackInfo = (context as FullTrack);
@@ -76,7 +78,7 @@
                             @for (int i = 0; i < @trackInfo.Artists.Count; i++)
                             {
                                 SimpleArtist artist = @trackInfo.Artists.ElementAt(i);
-                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
                                 if (i + 1 < @trackInfo.Artists.Count)
                                 {
                                     <span class="comma">, </span>
@@ -133,7 +135,7 @@
                             @{
                             var albumInfo = (context as SimpleAlbum);
 
-                            <div class="play-button-inline" @onclick="@(() => ClickedAlbumPlay(albumInfo.Uri))">
+                            <div class="play-button-inline" @onclick="@(() => PlayUtils.ClickedAlbumPlay(albumInfo.Uri, spotifyClient))">
                                 <i class="bi bi-play-fill"></i>
                             </div>
                         }
@@ -161,7 +163,7 @@
                             var albumInfo = (context as SimpleAlbum);
                             foreach (var artist in albumInfo.Artists)
                             {
-                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
                             }
                         }
 
@@ -171,7 +173,7 @@
                     <Template>
                         @{
                             var albumInfo = (context as SimpleAlbum);
-                            <div class="artist-name-link" @onclick="@(() => ClickedOnAlbum(albumInfo.Id))">@albumInfo.Name</div>
+                            <div class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnAlbum(albumInfo.Id))">@albumInfo.Name</div>
                         }
                     </Template>
                 </GridColumn>
@@ -199,7 +201,7 @@
                             @{
                             var albumInfo = (context as SimpleAlbum);
 
-                            <div class="play-button-inline" @onclick="@(() => ClickedAlbumPlay(albumInfo.Uri))">
+                            <div class="play-button-inline" @onclick="@(() => PlayUtils.ClickedAlbumPlay(albumInfo.Uri, spotifyClient))">
                                 <i class="bi bi-play-fill"></i>
                             </div>
                         }
@@ -227,7 +229,7 @@
                             var albumInfo = (context as SimpleAlbum);
                             foreach (var artist in albumInfo.Artists)
                             {
-                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
                             }
                         }
 
@@ -237,7 +239,7 @@
                     <Template>
                         @{
                             var albumInfo = (context as SimpleAlbum);
-                            <div class="artist-name-link" @onclick="@(() => ClickedOnAlbum(albumInfo.Id))">@albumInfo.Name</div>
+                            <div class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnAlbum(albumInfo.Id))">@albumInfo.Name</div>
                         }
                     </Template>
                 </GridColumn>
@@ -283,22 +285,11 @@
     private void UpdateQuery(object sender, LocationChangedEventArgs e)
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("a", out var _searchPhrase))
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("artistId", out var _searchPhrase))
         {
             searchPhrase = _searchPhrase;
-            Console.WriteLine(searchPhrase);
             SpotifyArtistlistLoad();
         }
-    }
-
-    public void ClickedOnArtist(string id)
-    {
-        NavManager.NavigateTo($"/artist?a={id}");
-    }
-
-    public void ClickedOnAlbum(string id)
-    {
-        NavManager.NavigateTo($"/album?albumId={id}");
     }
 
     protected override async Task OnInitializedAsync()
@@ -315,30 +306,14 @@
         NavManager.LocationChanged += UpdateQuery;
     }
 
-    private void TenMore()
-    {
-        offset++;
-        SpotifyArtistlistLoad(false);
-    }
-
-    private T ConvertObject<T>(object M) where T : class
-    {
-        // Serialize the original object to json
-        // Desarialize the json object to the new type
-        var obj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(M));
-        return obj;
-    }
-
-    private async void SpotifyArtistlistLoad(bool reset = true)
+    private async void SpotifyArtistlistLoad()
     {
         albums = new List<SimpleAlbum>();
         eps = new List<SimpleAlbum>();
         topTracks = new List<FullTrack>();
         loadingData = true;
-        StateHasChanged();
 
-        /*fullPlaylist = (await spotifyClient.Playlists.Get(searchPhrase));
-        tracks = ConvertObject<List<PlaylistTrack<FullTrack>>>(fullPlaylist.Tracks.Items);*/
+        StateHasChanged();
 
         artist = (await spotifyClient.Artists.Get(searchPhrase));
 
@@ -362,11 +337,6 @@
         {
             albums = albums.Concat(nextPaging.Items).ToList();
 
-            /*nextPaging.Items.ForEach(async simpleAlbum =>
-            {
-                albums.Add(await spotifyClient.Albums.Get(simpleAlbum.Id));
-            });*/
-
             loadingPercentage = (((offsetOffset) * 50 + nextPaging.Items.Count()) / (float)nextPaging.Total * 100);
 
             offsetOffset++;
@@ -386,10 +356,6 @@
         {
 
             eps = eps.Concat(nextPaging.Items).ToList();
-            /*nextPaging.Items.ForEach(async simpleAlbum =>
-            {
-                eps.Add(await spotifyClient.Albums.Get(simpleAlbum.Id));
-            });*/
 
             loadingPercentage = (((offsetOffset) * 50 + nextPaging.Items.Count()) / (float)nextPaging.Total * 100);
 
@@ -402,24 +368,6 @@
         loadingData = false;
 
         StateHasChanged();
-    }
-
-    private async void ClickedPlay(string songUri)
-    {
-        Console.WriteLine(songUri);
-        List<string> trackList = new List<string>();
-        trackList.Add(songUri);
-        var track = new PlayerResumePlaybackRequest();
-        track.Uris = trackList;
-        Console.WriteLine(spotifyClient);
-        await spotifyClient.Player.ResumePlayback(track);
-    }
-
-    private async void ClickedAlbumPlay(string albumUri)
-    {
-        PlayerResumePlaybackRequest alb = new PlayerResumePlaybackRequest();
-        alb.ContextUri = albumUri;
-        await spotifyClient.Player.ResumePlayback(alb);
     }
 
     void IDisposable.Dispose() => NavManager.LocationChanged -= UpdateQuery;

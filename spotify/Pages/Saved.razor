@@ -3,6 +3,8 @@
 @using Syncfusion.Blazor.Grids
 @inject ISpotify spotify
 @inject SpotifyDb spotifyDb
+@inject NavigationUtils NavUtils
+@inject PlayUtils PlayUtils
 
 @if (!loadingData)
 {
@@ -12,6 +14,15 @@
         </div>
         <div class="right-side">
             <div class="playlist-title">Liked songs</div>
+            @if (@loadedFromCache)
+            {
+                <div class="playlist-refresh cache"><i class="bi bi-lightning-charge-fill"></i><span>Loaded from memory</span></div>
+            }
+            else
+            {
+                
+                <div class="playlist-refresh spotify"><i class="bi bi-spotify"></i><span>Synced with Spotify</span></div>
+            }
         </div>
     </div>
 }
@@ -37,13 +48,13 @@
                             @{
                             var trackInfo = (context as SavedTrack);
 
-                            <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Track.Uri))">
+                            <div class="play-button-inline" @onclick="@(() => PlayUtils.ClickedPlay(trackInfo.Track.Uri, spotifyClient))">
                                 <i class="bi bi-play-fill"></i>
                             </div>
                         }
                     </Template>
                 </GridColumn>
-                <GridColumn HeaderText="Artists" AutoFit="true">
+                <GridColumn Field="Track.Artists.Count" HeaderText="Artists" AutoFit="true">
                     <Template>
                         @{
                             var trackInfo = (context as SavedTrack);
@@ -51,7 +62,7 @@
                             @for (int i = 0; i < @trackInfo.Track.Artists.Count; i++)
                             {
                                 SimpleArtist artist = @trackInfo.Track.Artists.ElementAt(i);
-                                <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
                                 if (i + 1 < @trackInfo.Track.Artists.Count)
                                 {
                                     <span class="comma">, </span>
@@ -59,6 +70,25 @@
                             }
                         }
 
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Track.Name" HeaderText="Title" AutoFit="true" />
+                <GridColumn Field="Track.Album.Name" HeaderText="Album" AutoFit="true">
+                    <Template>
+                        @{
+                            var trackInfo = (context as SavedTrack);
+
+                            @if (trackInfo.Track.Album.AlbumType == "album")
+                            {
+                                <span class="album-or-track"><i class="bi bi-vinyl-fill"></i></span>
+                            }
+                            else
+                            {
+                                <span class="album-or-track"><i class="bi bi-music-note"></i></span>
+                            }
+                            <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnAlbum(trackInfo.Track.Album.Id))">@trackInfo.Track.Album.Name</span>
+
+                        }
                     </Template>
                 </GridColumn>
                 <GridColumn Field="Track.DurationMs" HeaderText="Length">
@@ -72,7 +102,6 @@
 
                     </Template>
                 </GridColumn>
-                <GridColumn Field="Track.Name" HeaderText="Title" AutoFit="true" />
                 <GridColumn Field="Track.Popularity" HeaderText="Popularity" />
                 <GridColumn Field="Track.Explicit" HeaderText="Explicit">
                     <Template>
@@ -87,7 +116,6 @@
 
                     </Template>
                 </GridColumn>
-                <GridColumn Field="Track.Album.Name" HeaderText="Album" AutoFit="true" />
                 <GridColumn Field="AddedAt" HeaderText="Added" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
             </GridColumns>
         </SfGrid>
@@ -123,6 +151,7 @@
 
     bool loadingData = true;
     float loadingPercentage = 0;
+    bool loadedFromCache = true;
 
     SpotifyClient spotifyClient = null;
 
@@ -143,23 +172,16 @@
         }
         else
         {
+            loadedFromCache = true;
             loadingData = false;
+            StateHasChanged();
         }
-    }
-
-    /*public void DataboundHandler(object args)
-     {
-         GridRef.AutoFitColumns();
-     }*/
-
-    public void ClickedOnArtist(string id)
-    {
-        NavManager.NavigateTo($"/artist?a={id}");
     }
 
     private async void FetchLikedSongs()
     {
         loadingData = true;
+        
         await spotifyDb.LikedSongs.ClearStore();
 
         Paging<SavedTrack> nextPaging = new Paging<SavedTrack>();
@@ -172,10 +194,7 @@
         {
             nextPaging.Items.ForEach(async (savedTrack) => { await spotifyDb.LikedSongs.Add(savedTrack); });
 
-            Console.WriteLine(nextPaging.Items.Count);
-
             loadingPercentage = (((offsetOffset) * 50 + nextPaging.Items.Count()) / (float)nextPaging.Total * 100);
-            Console.WriteLine(loadingPercentage);
 
             offsetOffset++;
             ltr.Offset = offsetOffset * 50;
@@ -187,20 +206,8 @@
 
         loadingData = false;
         loadingPercentage = 0;
+        loadedFromCache = false;
 
         StateHasChanged();
     }
-
-    private async void ClickedPlay(string songUri)
-    {
-        List<string> trackList = new List<string>();
-        trackList.Add(songUri);
-        var track = new PlayerResumePlaybackRequest();
-        track.Uris = trackList;
-        await spotifyClient.Player.ResumePlayback(track);
-    }
 }
-
-
-
-

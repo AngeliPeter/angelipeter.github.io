@@ -178,3 +178,23 @@
     font-variant: small-caps;
     opacity: 0.7;
 }
+
+.playlist-refresh {
+    display: flex;
+    margin-top: 10px;
+    font-size: small;
+}
+
+.playlist-refresh i {
+    margin-right: 5px;
+    display: flex;
+    align-items: center;
+}
+
+    .playlist-refresh.spotify {
+        color: #1DB954;
+    }
+
+    .playlist-refresh.cache {
+        color: #FE5000;
+    }

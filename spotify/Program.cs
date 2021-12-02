@@ -14,6 +14,7 @@ using System.Net.Http;
 using System.Text;
 using Syncfusion.Blazor;
 using System.Threading.Tasks;
+using spotify.Utils;
 
 namespace spotify
 {
@@ -39,6 +40,8 @@ namespace spotify
             builder.Services.AddBlazoredLocalStorage().AddScoped<Spotify>();
             builder.Services.AddSyncfusionBlazor();
             builder.Services.AddScoped<SpotifyDb>();
+            builder.Services.AddScoped<NavigationUtils>();
+            builder.Services.AddScoped<PlayUtils>();
 
             await builder.Build().RunAsync();
         }

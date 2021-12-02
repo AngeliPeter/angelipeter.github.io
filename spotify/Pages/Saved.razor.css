@@ -55,3 +55,28 @@
         opacity: 1;
         text-decoration: underline;
     }
+
+.album-or-track {
+    margin-right: 8px;
+    opacity: 0.3;
+}
+
+.playlist-refresh {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    font-size: small;
+}
+
+    .playlist-refresh i {
+        margin-right: 5px;
+        display: flex;
+    }
+
+    .playlist-refresh.spotify {
+        color: #1DB954;
+    }
+
+    .playlist-refresh.cache {
+        color: #FE5000;
+    }

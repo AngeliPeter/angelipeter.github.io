@@ -2,11 +2,11 @@
 @inject ISpotify spotify
 @inject Blazored.LocalStorage.ISyncLocalStorageService localStorage
 @inject SpotifyDb spotifyDb
-
+@inject NavigationUtils NavUtils
 
 <div class="navbar-container">
     <div class="profile-container">
-        <div class="profile-image">
+        <div class="profile-image" @onclick="NavUtils.ClickedMainPage">
             @if (image != null)
             {
                 <img src="@image" class="profile-pic" />
@@ -29,9 +29,7 @@
 
         @if (!loadingData)
         {
-
-
-            <div class="playlist" @onclick="ClickedLikedSong">
+            <div class="playlist" @onclick="NavUtils.ClickedLikedSong">
                 <div class="playlist-image-container">
                     <img src="https://i.pinimg.com/originals/07/74/a4/0774a492388967e2b5b6d65b95f3fd1a.png" class="playlist-image" />
                 </div>
@@ -42,7 +40,7 @@
 
             @foreach (var playlist in playlists)
             {
-                <div class="playlist" @onclick="() => NavigateToPlaylist(playlist.Id)">
+                <div class="playlist" @onclick="() => NavUtils.NavigateToPlaylist(playlist.Id)">
                     <div class="playlist-image-container">
                         @if (playlist.Images.Count > 0 && playlist.Images[0] != null)
                         {
@@ -164,6 +162,16 @@
 
                 </div>
                 <div class="player-image-container">
+                    <div class="like" @onclick="@ClickedOnLike">
+                        @if (liked)
+                        {
+                            <i class="bi bi-heart-fill"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-heart"></i>
+                        }
+                    </div>
                     @if (track.Album.Images.FirstOrDefault() != null)
                     {
                         <img src="@track.Album.Images.FirstOrDefault().Url" class="player-image" />
@@ -188,7 +196,7 @@
                     @for (int i = 0; i < @track.Artists.Count; i++)
                     {
                         SimpleArtist artist = @track.Artists.ElementAt(i);
-                        <span class="artist-name-link" @onclick="@(() => ClickedOnArtist(artist.Id))">@artist.Name</span>
+                        <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
                         if (i + 1 < @track.Artists.Count)
                         {
                             <span class="comma">, </span>
@@ -233,6 +241,10 @@
                 }
             </div>
         }
+        else
+        {
+            <div>Start playing something on one of your devices</div>
+        }
 
     </div>
 </div>
@@ -249,12 +261,16 @@
     bool onPause = false;
     bool onNext = false;
 
+    bool liked = false;
+    bool likedRefresh = false;
+
     bool seekSliderFocus = false;
     bool volumeSliderFocus = false;
 
     Device currentDevice = null;
 
     bool loadingData = true;
+    PrivateUser user;
 
     List<Device> devices = new List<Device>();
     CurrentlyPlaying currentlyPlaying = null;
@@ -272,7 +288,7 @@
         }
         spotifyClient = result.SpotifyObject;
 
-        var user = (await spotifyClient.UserProfile.Current());
+        user = (await spotifyClient.UserProfile.Current());
         name = user.DisplayName;
         image = user.Images.FirstOrDefault().Url;
 
@@ -281,6 +297,11 @@
 
         PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
         currentlyPlaying = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
+        List<string> ids = new List<string>();
+        ids.Add(((FullTrack)currentlyPlaying.Item).Id);
+
+        LibraryCheckTracksRequest lctr = new LibraryCheckTracksRequest(ids);
+        liked = (await spotifyClient.Library.CheckTracks(lctr)).FirstOrDefault(false);
 
         await spotifyDb.Open();
 
@@ -295,25 +316,10 @@
         StartTimerAsync(true);
     }
 
-    public void ClickedLikedSong()
-    {
-        NavManager.NavigateTo("/saved");
-    }
-
     private void LogOut()
     {
         localStorage.RemoveItem("PKCE");
         NavManager.NavigateTo("/", forceLoad: true);
-    }
-
-    public void ClickedOnArtist(string id)
-    {
-        NavManager.NavigateTo($"/artist?a={id}");
-    }
-
-    private void NavigateToPlaylist(string id)
-    {
-        NavManager.NavigateTo($"/playlist?id={id}");
     }
 
     private void RefreshPlaylists()
@@ -354,12 +360,30 @@
             pcur.Offset = offsetOffset * 50;
         }
 
-        Console.WriteLine(playlists.Count);
-
         playlists = (await spotifyDb.SavedPlaylists.GetAll<SimplePlaylist>()).OrderBy(playlist => playlist.Name).ToList();
 
         loadingData = false;
         StateHasChanged();
+    }
+
+    private async void ClickedOnLike()
+    {
+        List<string> ids = new List<string>();
+        ids.Add(((FullTrack)currentlyPlaying.Item).Id);
+        if (liked)
+        {
+
+            LibraryRemoveTracksRequest lstr = new LibraryRemoveTracksRequest(ids);
+            await spotifyClient.Library.RemoveTracks(lstr);
+            likedRefresh = true;
+        }
+        else
+        {
+            LibrarySaveTracksRequest lstr = new LibrarySaveTracksRequest(ids);
+            await spotifyClient.Library.SaveTracks(lstr);
+            likedRefresh = true;
+        }
+
     }
 
 
@@ -376,7 +400,24 @@
             if (!seekSliderFocus)
             {
                 PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
-                currentlyPlaying = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
+                CurrentlyPlaying currentlyPlayingNow = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
+
+                if (currentlyPlaying == null || likedRefresh || ((FullTrack)currentlyPlaying.Item).Id != ((FullTrack)currentlyPlayingNow.Item).Id)
+                {
+                    likedRefresh = false;
+                    currentlyPlaying = currentlyPlayingNow;
+                    List<string> ids = new List<string>();
+                    ids.Add(((FullTrack)currentlyPlayingNow.Item).Id);
+
+                    LibraryCheckTracksRequest lctr = new LibraryCheckTracksRequest(ids);
+                    liked = (await spotifyClient.Library.CheckTracks(lctr)).FirstOrDefault(false);
+                }
+                else
+                {
+                    currentlyPlaying = currentlyPlayingNow;
+                }
+
+
             }
 
             var result = await spotify.Init(true);

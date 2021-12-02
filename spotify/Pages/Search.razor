@@ -1,39 +1,257 @@
 ﻿@page "/search"
+@using System.Globalization
 @inject NavigationManager NavManager
 @inject ISpotify spotify
 @implements IDisposable
+@inject NavigationUtils NavUtils
+@inject PlayUtils PlayUtils
 
-Search
+<div class="title-search">
+    <div class="title-static-search">Showing results for</div>
+    <div class="title-dynamic-search">@searchPhrase</div>
+</div>
 
 @if (!loadingData)
 {
-    <div class="row">
-        <SfGrid DataSource="@GridData"
+    var Tool = (new List<string>() { "Search" });
+
+    <div class="album-header">Artist results</div>
+
+    <div class="col-lg-12 control-section">
+        <div class="row">
+            <SfGrid DataSource="@GridDataArtists"
                 AllowPaging="true"
                 AllowReordering="true"
                 AllowSorting="true"
-                AllowSelection="true">
-            <GridPageSettings PageSize="15" />
-            <GridColumns>
-                <GridColumn HeaderText="" Width="50">
+                AllowSelection="true"
+                Toolbar=@Tool>
+                <GridPageSettings PageSize="3" />
+                <GridColumns>
+                    <GridColumn HeaderText="" Width="80">
+                        <Template>
+                            @{
+                            var artistInfo = (context as FullArtist);
+                            @if (artistInfo.Images.Count > 0 && artistInfo.Images[0] != null)
+                            {
+                                <img src="@artistInfo.Images[0].Url" class="albumInfo-image" />
+                            }
+                            else
+                            {
+                                <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Name" HeaderText="Name">
                     <Template>
                         @{
+                            var artist = (context as FullArtist);
+                            <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Popularity" HeaderText="Popularity" />
+                <GridColumn Field="Followers.Total" HeaderText="Followers">
+
+                    <Template>
+                        @{
+                            var artist = (context as FullArtist);
+                            <span>@(artist.Followers.Total.ToString("n", new NumberFormatInfo {NumberGroupSeparator = " ", NumberDecimalDigits = 0}))</span>
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn HeaderText="Genres" AutoFit="true">
+                    <Template>
+                        @{
+                            var artistInfo = (context as FullArtist);
+
+                            @for (int i = 0; i < @artistInfo.Genres.Count; i++)
+                            {
+                                string genre = artistInfo.Genres.ElementAt(i);
+                                <span>@genre</span>
+                                if (i + 1 < artistInfo.Genres.Count)
+                                {
+                                    <span>, </span>
+                                }
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+
+            </GridColumns>
+        </SfGrid>
+    </div>
+</div>
+
+    <div class="album-header">Track results</div>
+
+    <div class="col-lg-12 control-section">
+        <div class="row">
+            <SfGrid DataSource="@GridData"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true"
+                Toolbar=@Tool>
+                <GridPageSettings PageSize="5" />
+                <GridColumns>
+                    <GridColumn HeaderText="" AutoFit="true">
+                        <Template>
+                            @{
                             var trackInfo = (context as FullTrack);
 
-                            <div class="play-button-inline" @onclick="@(() => ClickedPlay(trackInfo.Uri))">
+                            <div class="play-button-inline" @onclick="@(() => PlayUtils.ClickedPlay(trackInfo.Uri, spotifyClient))">
                                 <i class="bi bi-play-fill"></i>
                             </div>
                         }
                     </Template>
                 </GridColumn>
+                <GridColumn Field="TrackNumber" HeaderText="#" AutoFit="true" />
+                <GridColumn Field="Name" HeaderText="Title" />
+                <GridColumn HeaderText="Artists">
+                    <Template>
+                        @{
+                            var trackInfo = (context as FullTrack);
+
+                            @for (int i = 0; i < @trackInfo.Artists.Count; i++)
+                            {
+                                SimpleArtist artist = @trackInfo.Artists.ElementAt(i);
+                                <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
+                                if (i + 1 < @trackInfo.Artists.Count)
+                                {
+                                    <span class="comma">, </span>
+                                }
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Album.Name" HeaderText="Album" AutoFit="true">
+                    <Template>
+                        @{
+                            var trackInfo = (context as FullTrack);
+
+                            @if (trackInfo.Album.AlbumType == "album")
+                            {
+                                <span class="album-or-track"><i class="bi bi-vinyl-fill"></i></span>
+                            }
+                            else
+                            {
+                                <span class="album-or-track"><i class="bi bi-music-note"></i></span>
+                            }
+                            <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnAlbum(trackInfo.Album.Id))">@trackInfo.Album.Name</span>
+
+                        }
+                    </Template>
+                </GridColumn>
                 <GridColumn Field="Popularity" HeaderText="Popularity" />
-                <GridColumn Field="Name" HeaderText="Name" />
-                <GridColumn Field="Explicit" HeaderText="Explicit" />
-                <GridColumn Field="DurationMs" HeaderText="DurationMs" />
-                <GridColumn Field="Album.Name" HeaderText="AlbumName" />
+                <GridColumn Field="DurationMs" HeaderText="Length">
+                    <Template>
+                        @{
+                            var trackInfo = (context as FullTrack);
+                            long secondsDur = trackInfo.DurationMs / 1000;
+                            long minutesDur = secondsDur / 60;
+                            <span>@($"{minutesDur}:{(secondsDur % 60):D2}")</span>
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Explicit" HeaderText="Explicit">
+                    <Template>
+                        @{
+                            var trackInfo = (context as FullTrack);
+
+                            if (trackInfo.Explicit)
+                            {
+                                <i class="bi bi-explicit-fill"></i>
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
             </GridColumns>
         </SfGrid>
     </div>
+</div>
+
+    <div class="album-header">Album results</div>
+
+    <div class="col-lg-12 control-section">
+        <div class="row">
+            <SfGrid DataSource="@GridDataAlbums"
+                AllowPaging="true"
+                AllowReordering="true"
+                AllowSorting="true"
+                AllowSelection="true">
+                <GridPageSettings PageSize="5" />
+                <GridColumns>
+                    <GridColumn HeaderText="" AutoFit="true">
+                        <Template>
+                            @{
+                            var albumInfo = (context as SimpleAlbum);
+
+                            <div class="play-button-inline" @onclick="@(() => PlayUtils.ClickedAlbumPlay(albumInfo.Uri, spotifyClient))">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn HeaderText="" Width="80">
+                    <Template>
+                        @{
+                            var albumInfo = (context as SimpleAlbum);
+                            @if (albumInfo.Images.Count > 0 && albumInfo.Images[0] != null)
+                            {
+                                <img src="@albumInfo.Images[0].Url" class="albumInfo-image" />
+                            }
+                            else
+                            {
+                                <img src="https://user-images.githubusercontent.com/26250962/42155301-ee1010d6-7ddf-11e8-9915-4fc75f6eab66.png" class="albumInfo-image" />
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn HeaderText="Artists">
+                    <Template>
+                        @{
+                            var albumInfo = (context as SimpleAlbum);
+                            foreach (var artist in albumInfo.Artists)
+                            {
+                                <span class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnArtist(artist.Id))">@artist.Name</span>
+                            }
+                        }
+
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Name" HeaderText="Album Title">
+                    <Template>
+                        @{
+                            var albumInfo = (context as SimpleAlbum);
+                            <div class="artist-name-link" @onclick="@(() => NavUtils.ClickedOnAlbum(albumInfo.Id))">@albumInfo.Name</div>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="TotalTracks" HeaderText="Number of Tracks" />
+                <GridColumn Field="ReleaseDate" HeaderText="Release Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" />
+            </GridColumns>
+        </SfGrid>
+    </div>
+</div>
+}
+else
+{
+    <span class="spinner-border spinner-border-sm" role="status">
+        <span class="sr-only">Loading...</span>
+    </span>
+}
+
+@if (!loadingData)
+{
     <div class="refresh-button">
         <button type="button" class="btn btn-primary btn-sm" @onclick="TenMore" disabled="@loadingData">
             <span>Give me 15 more</span>
@@ -46,12 +264,6 @@ Search
         </button>
     </div>
 }
-else
-{
-<span class="spinner-border spinner-border-sm" role="status">
-    <span class="sr-only">Loading...</span>
-</span>
-}
 
 
 @code {
@@ -60,6 +272,8 @@ else
     bool loadingData = true;
     int offset = 0;
     public IEnumerable<FullTrack> GridData { get; set; }
+    public IEnumerable<FullArtist> GridDataArtists { get; set; }
+    public IEnumerable<SimpleAlbum> GridDataAlbums { get; set; }
 
     private void UpdateQuery(object sender, LocationChangedEventArgs e)
     {
@@ -98,28 +312,22 @@ else
         sr.Offset = offset * 15;
         sr.Limit = 15;
         SearchResponse response = await spotifyClient.Search.Item(sr);
-        if (GridData == null || offset == 0) {
+        if (GridData == null || offset == 0)
+        {
             GridData = response.Tracks.Items;
+            GridDataArtists = response.Artists.Items;
+            GridDataAlbums = response.Albums.Items;
         }
         else
         {
             GridData = GridData.Concat(response.Tracks.Items);
+            GridDataArtists = GridDataArtists.Concat(response.Artists.Items);
+            GridDataAlbums = GridDataAlbums.Concat(response.Albums.Items);
         }
 
         loadingData = false;
 
         StateHasChanged();
-    }
-
-    private async void ClickedPlay(string songUri)
-    {
-        Console.WriteLine(songUri);
-        List<string> trackList = new List<string>();
-        trackList.Add(songUri);
-        var track = new PlayerResumePlaybackRequest();
-        track.Uris = trackList;
-        Console.WriteLine(spotifyClient);
-        await spotifyClient.Player.ResumePlayback(track);
     }
 
     void IDisposable.Dispose() => NavManager.LocationChanged -= UpdateQuery;

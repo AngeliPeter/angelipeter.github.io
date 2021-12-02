@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace spotify.Interfaces
 {
-    interface ISpotify
+    public interface ISpotify
     {
         public Task<(bool Success, string RedirectURL, SpotifyClient SpotifyObject)> Init(bool check = false);
     }

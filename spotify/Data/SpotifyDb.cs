@@ -1,5 +1,6 @@
 ﻿using BlazorIndexedDbJs;
 using Microsoft.JSInterop;
+using SpotifyAPI.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,8 +29,6 @@ namespace spotify.Data
         public IDBIndex Id { get; }
         public IDBIndex _Name { get; }
         public IDBIndex Images { get; }
-
-
         public SavedPlaylists(IDBDatabase database) : base(database)
         {
             Name = "SavedPlaylists";
@@ -40,17 +39,32 @@ namespace spotify.Data
         }
     }
 
+    public class SavedFullPlaylist : IDBObjectStore
+    {
+        public string Id { get; }
+        public Paging<PlaylistTrack<FullTrack>>? Tracks;
+
+
+        public SavedFullPlaylist(IDBDatabase database) : base(database)
+        {
+            Name = "SavedFullPlaylist";
+            KeyPath = "id";
+        }
+    }
+
     public class SpotifyDb : IDBDatabase
     {
         public LikedSongs LikedSongs { get; }
+        public SavedFullPlaylist SavedFullPlaylist { get; }
         public SavedPlaylists SavedPlaylists { get; }
 
         public SpotifyDb(IJSRuntime jsRuntime) : base(jsRuntime)
         {
             Name = "SpotifyDb";
-            Version = 5;
+            Version = 8;
 
             LikedSongs = new LikedSongs(this);
+            SavedFullPlaylist = new SavedFullPlaylist(this);
             SavedPlaylists = new SavedPlaylists(this);
         }
     }
