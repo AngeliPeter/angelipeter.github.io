@@ -35,7 +35,7 @@
             }
             else
             {
-                
+
                 <div class="playlist-refresh spotify"><i class="bi bi-spotify"></i><span>Synced with Spotify</span></div>
             }
 
@@ -47,7 +47,7 @@
                     Liked songs
                 </div>
             </div>
-            
+
 
             @foreach (var playlist in playlists)
             {
@@ -430,19 +430,16 @@
                 PlayerCurrentlyPlayingRequest pcpr = new PlayerCurrentlyPlayingRequest();
                 CurrentlyPlaying currentlyPlayingNow = (await spotifyClient.Player.GetCurrentlyPlaying(pcpr));
 
-                if (currentlyPlaying == null || likedRefresh || ((FullTrack)currentlyPlaying.Item).Id != ((FullTrack)currentlyPlayingNow.Item).Id)
+                if (currentlyPlayingNow != null && (currentlyPlaying == null || likedRefresh || ((FullTrack)currentlyPlaying.Item).Id != ((FullTrack)currentlyPlayingNow.Item).Id))
                 {
                     likedRefresh = false;
-                    if (currentlyPlayingNow != null)
-                    {
 
-                        currentlyPlaying = currentlyPlayingNow;
-                        List<string> ids = new List<string>();
-                        ids.Add(((FullTrack)currentlyPlayingNow.Item).Id);
+                    currentlyPlaying = currentlyPlayingNow;
+                    List<string> ids = new List<string>();
+                    ids.Add(((FullTrack)currentlyPlayingNow.Item).Id);
 
-                        LibraryCheckTracksRequest lctr = new LibraryCheckTracksRequest(ids);
-                        liked = (await spotifyClient.Library.CheckTracks(lctr)).FirstOrDefault(false);
-                    }
+                    LibraryCheckTracksRequest lctr = new LibraryCheckTracksRequest(ids);
+                    liked = (await spotifyClient.Library.CheckTracks(lctr)).FirstOrDefault(false);
                 }
                 else
                 {
