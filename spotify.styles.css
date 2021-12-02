@@ -121,6 +121,26 @@
 .comma[b-3dflb7382y] {
     opacity: 0.5;
 }
+
+.playlist-refresh[b-3dflb7382y] {
+    display: flex;
+    margin-top: 10px;
+    font-size: small;
+}
+
+    .playlist-refresh i[b-3dflb7382y] {
+        margin-right: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .playlist-refresh.spotify[b-3dflb7382y] {
+        color: #1DB954;
+    }
+
+    .playlist-refresh.cache[b-3dflb7382y] {
+        color: #FE5000;
+    }
 /* /Pages/Artist.razor.rz.scp.css */
 .play-button-inline[b-2d8hnw67lo] {
     cursor: pointer;
@@ -216,6 +236,40 @@
 .comma[b-2d8hnw67lo] {
     opacity: 0.5;
 }
+
+.playlist-refresh[b-2d8hnw67lo] {
+    display: flex;
+    margin-top: 10px;
+    font-size: small;
+}
+
+    .playlist-refresh i[b-2d8hnw67lo] {
+        margin-right: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .playlist-refresh.spotify[b-2d8hnw67lo] {
+        color: #1DB954;
+    }
+
+    .playlist-refresh.cache[b-2d8hnw67lo] {
+        color: #FE5000;
+    }
+
+.comma[b-2d8hnw67lo] {
+    opacity: 0.5;
+}
+
+.artist-name-link[b-2d8hnw67lo] {
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+    .artist-name-link:hover[b-2d8hnw67lo] {
+        opacity: 1;
+        text-decoration: underline;
+    }
 /* /Pages/Index.razor.rz.scp.css */
 /*.play-button-inline {
     cursor: pointer;
@@ -1241,6 +1295,26 @@
 .player-image-container:hover .like[b-k6naj5on4p] {
     opacity: 1;
 }
+
+.playlist-refresh[b-k6naj5on4p] {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    font-size: small;
+}
+
+    .playlist-refresh i[b-k6naj5on4p] {
+        margin-right: 5px;
+        display: flex;
+    }
+
+    .playlist-refresh.spotify[b-k6naj5on4p] {
+        color: #1DB954;
+    }
+
+    .playlist-refresh.cache[b-k6naj5on4p] {
+        color: #FE5000;
+    }
 /* /Shared/SearchBar.razor.rz.scp.css */
 .search-field[b-0a6fxl3a8l] {
     background-color: transparent;
